@@ -19,6 +19,10 @@ library(arcgisbinding)
 ## Check ArcGIS Pro product is installed locally
 arc.check_product()
 
+##BIOTICS 5 database
+##Instructions for connecting to biotics 5 database: https://help.natureserve.org/biotics/#ConnectingToBiotics5/CONN_Overview_Connecting.htm%3FTocPath%3DConnecting%2520to%2520Biotics%25205%7C_____0
+##instructions for connecting to database through r: https://www.r-bloggers.com/2017/05/connecting-r-to-an-oracle-database/
+
 ##spatial snapshot is in folder: https://natureserve.atlassian.net/wiki/spaces/BIOTICS5/pages/3093660323/Biotics+Servers
 
 ##get data from api
