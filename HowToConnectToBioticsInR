@@ -17,9 +17,14 @@ a. download oracle-client winx64 zipped file
 b. create Oracle folder in C/_Software
 c. move zipped oracle client folder to Oracle folder
 d. unzip oracle client in Oracle folder
+....
+e. create data source name
+f. Whitney had to change permissions so I could access items in the oracle folder
 
 2. Obtain the passwords for the user (Whitney needs to create a Biotics account and share credentials)
 
 MORE STEPS HERE
 
 3. Connect to VPN (using netextender; probably required to connect to Server)
+4. load RODBC package
+5. use the data source name and credentials to connect

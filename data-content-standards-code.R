@@ -39,7 +39,7 @@ arc.check_product()
 ##subset biotics data
 #usesaCode, cosewicCode, saraCode, gRank
 
-##biotics snapshot
+##biotics spatial snapshot
 snap<-arc.open("S:/Data/NatureServe/BLD_Occurrences/NS_BLD_GeoDB/Snapshots/Monthly-2022-01/bld-2022-01.gdb/BLD_EO_SPECIES")
 ##subset arc object before converting it to R object
 ##run this subset by margaret/cameron

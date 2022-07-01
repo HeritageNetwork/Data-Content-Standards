@@ -6,9 +6,9 @@
 # Load RODBC package
 library(RODBC)
 
-database.path<-"S:\Data\NatureServe\BLD_Occurrences\NS_BLD_GeoDB\Snapshots\Monthly-2022-01\bld-2022-01.gdb" ##database filepath
-
-con<-odbcConnect(database.path, uid="USERNAME", pwd="PASSWORD") ##open connection to database; replace with oracle function
+##NEED TO FIRST CONNECT TO VPN
+con<-odbcConnect("BIOSNAPDB07", uid="biotics_report", pwd=rstudioapi::askForPassword("Password")) ##open connection to database
+#sqlTables(con) ##show tables in the database
 
 qry <- "SELECT DISTINCT egt.element_global_id
 FROM  scientific_name gname,
@@ -151,7 +151,7 @@ where
 )
 "
 
-dat<-sqlQuery(con, qry); head(dat) ##import the queried table
+egt.global<-sqlQuery(con, qry); head(egt.global) ##import the queried table
 
 # When finished, it's a good idea to close the connection
 odbcClose(con)
