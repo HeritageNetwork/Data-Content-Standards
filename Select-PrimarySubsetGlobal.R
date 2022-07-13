@@ -155,3 +155,5 @@ egt.global<-sqlQuery(con, qry); head(egt.global) ##import the queried table
 
 # When finished, it's a good idea to close the connection
 odbcClose(con)
+
+#write.csv(egt.global, "Output/PrimarySubsetGlobal.csv", row.names=F)
