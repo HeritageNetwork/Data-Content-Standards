@@ -4,7 +4,7 @@
 library(ggplot2)
 
 ##convert counts into proportions of cases that are T/F for each standards and plants vs animals vs all
-data.qual.prop<-data.qual %>% dplyr::group_by(taxa, standard) %>% dplyr::summarise(prop = n/sum(n)) %>% data.frame()
+data.qual.prop<-data.qual %>% dplyr::group_by(standard, taxa) %>% dplyr::summarise(prop = n/sum(n)) %>% data.frame()
 data.qual$prop<-data.qual.prop$prop
 
 ##create function to make donut charts

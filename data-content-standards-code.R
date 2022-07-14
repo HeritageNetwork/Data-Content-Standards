@@ -2,6 +2,8 @@
 ##M Tarjan
 ##April 11, 2022
 
+##OLD VERSION BASED ON SPATIAL SNAPSHOT; DO NOT USE
+
 ##Jan 2022 snapshot
 ##biotics fields: https://natureserve01-my.sharepoint.com/:x:/g/personal/shara_howie_natureserve_org/EYznjVG_BAJGi40urSIos_kBbKaNQ0gYaaQ0Uyy8AutZ1A?e=J0HS2O&CID=01d1f82e-5dbc-3e50-37b6-635d6815158a
 ##example of reticulate package: http://zevross.com/blog/2019/11/12/using-reticulate-with-arcpy-on-a-windows-machine/
