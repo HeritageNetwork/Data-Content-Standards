@@ -1,3 +1,5 @@
+##step 2
+
 ##gather information about taxa
 ##nation, subnation, rounded grank, 
 
@@ -120,6 +122,7 @@ dat2$Grank[which(dat2$Grank =="NUM_GNRTNR")] <- F
 dat2$Grank[which(dat2$Grank!=F)]<-T
 dat2 <- dat2 %>% dplyr::group_by(taxa, Grank) %>% dplyr::summarise(n=sum(n)) %>% data.frame()
 
-colnames(dat2) <- c("taxa", "value", "n")
+colnames(dat2) <- c("group", "value", "n")
 data.qual <- dat2
 data.qual$standard <- "G_Rank"
+data.qual$group.type<-"taxa"

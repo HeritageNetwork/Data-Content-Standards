@@ -1,3 +1,4 @@
+##Step 4
 ##Select-ThreatCatgory
 ##Threat categories indicated, even if assessed and found to be “unknown” (GH/G1/G2/G3 and TH/T1/T2/T3 taxa only).
 
@@ -55,8 +56,29 @@ dat2 <- subset(dat2, ROUNDED_G_RANK %in% c('G1', 'G2', 'G3', 'GH', 'T1', 'T2', '
 dat2$taxa<-NA
 dat2$taxa[which(dat2$NAME_CATEGORY %in% c("Invertebrate Animal", "Vertebrate Animal"))]<-"Animals"
 dat2$taxa[which(dat2$NAME_CATEGORY == "Vascular Plant")]<-"Plants"
-dat2<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Threat_Category) %>% dplyr::summarise(n=sum(Freq)) %>% data.frame()
+##Group G and T ranks
+dat2 <- dat2 %>% dplyr::mutate(G_RANK = dplyr::case_when(
+  ROUNDED_G_RANK %in% c("G1", "T1") ~ "G1/T1",
+  ROUNDED_G_RANK %in% c("G2", "T2") ~ "G2/T2",
+  ROUNDED_G_RANK %in% c("G3", "T3") ~ "G3/T3",
+  ROUNDED_G_RANK %in% c("G4", "T4") ~ "G4/T4",
+  ROUNDED_G_RANK %in% c("G5", "T5") ~ "G5/T5",
+  ROUNDED_G_RANK %in% c("GH", "TH") ~ "GH/TH",
+  ROUNDED_G_RANK %in% c("GX", "TX") ~ "GX/TX",
+  ROUNDED_G_RANK %in% c("GNA", "TNA") ~ "GNA/TNA",
+  ROUNDED_G_RANK %in% c("GNR", "TNR") ~ "GNR/TNR",
+  ROUNDED_G_RANK %in% c("GU", "TU") ~ "GU/TU"
+))
+dat3<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Threat_Category) %>% dplyr::summarise(n=sum(Freq), group.type="taxa") %>% data.frame()
+colnames(dat3) <- c("group", "value", "n", "group.type")
+dat3$standard<-"Threat_Category"
 
-colnames(dat2) <- c("taxa", "value", "n")
-dat2$standard<-"Threat_Category"
-data.qual<-rbind(data.qual, dat2)
+dat4<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(G_RANK, Threat_Category) %>% dplyr::summarise(n=sum(Freq), group.type="G_Rank") %>% data.frame()
+colnames(dat4) <- c("group", "value", "n", "group.type")
+dat4$standard<-"Threat_Category"
+
+##if want to replace what's already in the main data table
+data.qual<-subset(data.qual, !standard=="Threat_Category") ##first remove existing values
+
+data.qual<-rbind(data.qual, subset(dat3, select= names(data.qual)))
+data.qual<-rbind(data.qual, subset(dat4, select= names(data.qual)))

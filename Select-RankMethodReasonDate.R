@@ -1,9 +1,10 @@
 ##Select Rank method and rank reason
+##step 3
 
 con<-odbcConnect("BIOSNAPDB07", uid="biotics_report", pwd=rstudioapi::askForPassword("Password")) ##open connection to database
 
 ##put a loop around query and use rbind to get more than 999 records
-id.vector<-egt.global$ELEMENT_GLOBAL_ID[1:100]
+id.vector<-egt.global$ELEMENT_GLOBAL_ID
 max.length <- 999
 x <- 1
 y <- min(c(max.length,length(id.vector)))
@@ -62,7 +63,8 @@ for (j in 1:ceiling((length(id.vector)/max.length))) {
   dat.temp$Rank_Reason[which(!is.na(dat.temp$G_RANK_REASONS))]<-T
   
   ##summarise in the loop so dataframe doesn't get too big
-  dat.temp<- table(subset(dat.temp, select = c(NAME_CATEGORY, ROUNDED_G_RANK, Rank_Method, Rank_Reason, Rank_Calculator, G_RANK_REVIEW_DATE))) %>% data.frame()
+  #dat.temp<- table(subset(dat.temp, select = c(NAME_CATEGORY, ROUNDED_G_RANK, Rank_Method, Rank_Reason, Rank_Calculator, G_RANK_REVIEW_DATE))) %>% data.frame() ##given huge number of combinations this now gets huge
+  dat.temp<- subset(dat.temp, select = c(NAME_CATEGORY, ROUNDED_G_RANK, Rank_Method, Rank_Reason, Rank_Calculator, G_RANK_REVIEW_DATE))
   dat.temp$x<-x
   dat.temp$y<-y
   dat<-rbind(dat, dat.temp)
@@ -70,7 +72,7 @@ for (j in 1:ceiling((length(id.vector)/max.length))) {
   y <- min(c(x-1+max.length,length(id.vector)))
 }
 
-# When finished, it's a good idea to close the connection
+# When finished, close the connection
 odbcClose(con)
 
 ##summarize across looped ids
@@ -91,27 +93,39 @@ dat2 <- dat2 %>% dplyr::mutate(G_RANK = dplyr::case_when(
   ROUNDED_G_RANK %in% c("GNR", "TNR") ~ "GNR/TNR",
   ROUNDED_G_RANK %in% c("GU", "TU") ~ "GU/TU"
 ))
+##translate rank review dates into categories
+dat2$G_RANK_REVIEW_DATE2<-dat2$G_RANK_REVIEW_DATE %>% as.character() %>% as.Date(format= "%Y-%m-%d")
+dat2 <- dat2 %>% dplyr::mutate(G_Rank_Review_Date = dplyr::case_when(
+  (Sys.Date() - dat2$G_RANK_REVIEW_DATE2) <= 365*10 ~ "0-10 years",
+  #(Sys.Date() - dat2$G_RANK_REVIEW_DATE2) >= 365*5 & (Sys.Date() - dat2$G_RANK_REVIEW_DATE2) < 365*10 ~ "5-10 years",
+  (Sys.Date() - dat2$G_RANK_REVIEW_DATE2) > 365*10 | is.na(dat2$G_RANK_REVIEW_DATE2) ~ ">10 years"
+))
 
-dat3<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Rank_Method) %>% dplyr::summarise(n=sum(Freq), standard="Rank_Method") %>% data.frame()
-dat4<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Rank_Reason) %>% dplyr::summarise(n=sum(Freq), standard="Rank_Reason") %>% data.frame()
-dat5<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Rank_Calculator) %>% dplyr::summarise(n=sum(Freq), standard="Rank_Calculator") %>% data.frame()
+dat3<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Rank_Method) %>% dplyr::summarise(n=dplyr::n(), standard="Rank_Method", group.type="taxa") %>% data.frame()
+dat4<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Rank_Reason) %>% dplyr::summarise(n=dplyr::n(), standard="Rank_Reason", group.type="taxa") %>% data.frame()
+dat5<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Rank_Calculator) %>% dplyr::summarise(n=dplyr::n(), standard="Rank_Calculator", group.type="taxa") %>% data.frame()
+dat6<-subset(dat2, taxa %in% c("Animals", "Plants") & !(G_RANK %in% c("GX/TX"))) %>% dplyr::group_by(taxa, G_Rank_Review_Date) %>% dplyr::summarise(n=dplyr::n(), standard="G_Rank_Review_Date", group.type="taxa") %>% data.frame()
 
-colnames(dat3) <- c("taxa", "value", "n", "standard"); colnames(dat4) <- c("taxa", "value", "n", "standard"); colnames(dat5) <- c("taxa", "value", "n", "standard")
+colnames(dat3) <- c("group", "value", "n", "standard", "group.type"); colnames(dat4) <- c("group", "value", "n", "standard", "group.type"); colnames(dat5) <- c("group", "value", "n", "standard", "group.type"); colnames(dat6) <- c("group", "value", "n", "standard", "group.type")
 
 ##break counts up by Grank
-standards.temp<-c("Rank_Method", "Rank_Reason", "Rank_Calculator")
-dat6<-dim(0)
+standards.temp<-c("Rank_Method", "Rank_Reason", "Rank_Calculator", "G_Rank_Review_Date")
+dat7<-dim(0)
 for(j in 1:length(standards.temp)) {
-  dat.temp<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(get(standards.temp[j]), G_RANK) %>% dplyr::summarise(n=sum(Freq)) %>% data.frame()
+  dat.temp<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(get(standards.temp[j]), G_RANK) %>% dplyr::summarise(n=dplyr::n()) %>% data.frame()
   names(dat.temp)[names(dat.temp) == 'get.standards.temp.j..'] <- 'value'
   dat.temp$standard<-standards.temp[j]
-  dat6<-rbind(dat6, dat.temp)
+  dat7<-rbind(dat7, dat.temp)
 }
-dat6$group.type<-"G_Rank"
+dat7$group.type<-"G_Rank"
+dat7<-subset(dat7, !(standard=="G_Rank_Review_Date" & G_RANK=="GX/TX"))
+names(dat7)[names(dat7) == 'G_RANK'] <- 'group'
 
-data.qual<-rbind(data.qual, dat3, dat4, dat5)
-names(data.qual)[names(data.qual) == 'taxa'] <- 'group'
-data.qual$group.type<-"taxa"
+##if need to remove existing data from master dataframe first
+data.qual<-subset(data.qual, subset = !(standard %in% standards.temp), select = -prop)
 
-names(dat6)[names(dat6) == 'G_RANK'] <- 'group'
-data.qual<-rbind(data.qual, subset(dat6, select= names(data.qual)))
+data.qual<-rbind(data.qual, dat3, dat4, dat5, dat6)
+data.qual<-rbind(data.qual, subset(dat7, select= names(data.qual)))
+
+##save dat2 for histogram of review years
+dat.rank<-dat2

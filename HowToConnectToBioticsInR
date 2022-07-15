@@ -28,3 +28,7 @@ MORE STEPS HERE
 3. Connect to VPN (using netextender; probably required to connect to Server)
 4. load RODBC package
 5. use the data source name and credentials to connect
+
+Explore the data
+tables<-sqlTables(con)$TABLE_NAME
+qry<-"SELECT * FROM D_RANK_METHOD_USED FETCH FIRST 3 ROWS ONLY"

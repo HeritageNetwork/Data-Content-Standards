@@ -2,6 +2,7 @@
 ##connect to database
 ##execute SQL query
 ##query from Q:\Conservation Services\ConsServ_Programs\IMPS_Department\Benchmark Data Standards\BDCS_Annual_Report\2018 report\SQL_WorkingLists/sql_EGT_subset2_201806
+##step 1
 
 # Load RODBC package
 library(RODBC)
