@@ -10,7 +10,8 @@ data.qual.prop<-data.qual %>% dplyr::group_by(standard, group, group.type) %>% d
 data.qual$prop<-data.qual.prop$prop
 
 ##write out dataset
-write.csv(data.qual, "Output/data.qual.csv", row.names=F)
+write.csv(data.qual, paste0("Output/data.qual.",Sys.Date(),".csv"), row.names=F)
+data.qual<-read.csv("Output/data.qual.csv")
 
 ##create function to make donut charts
 donut.plot <- function(data.plot, standard.plot, group.plot) {
@@ -43,13 +44,13 @@ donut.plot <- function(data.plot, standard.plot, group.plot) {
 ##for loop that creates a donut chart for each standard and saves it
 standards<-unique(data.qual$standard)
 for (j in 1:length(standards)) {
-  png(filename = paste0("Output/fig.", standards[j],".taxa.png"))
+  png(filename = paste0("Output/fig.", standards[j],".taxa.png"), width = 1200, height = 1200*.8, res=200)
   donut.plot(data.plot = data.qual, standard.plot = standards[j], group.plot="taxa")
   dev.off()
   
   if(nrow(subset(data.qual, standard==standards[j] & group.type=="G_Rank"))==0) {next} ##move to next standard if there are no data for various G ranks
   
-  png(filename = paste0("Output/fig.", standards[j],".GRank.png"))
+  png(filename = paste0("Output/fig.", standards[j],".GRank.png"), width = 1200, height = 1200*.8, res=150)
   donut.plot(data.plot = data.qual, standard.plot = standards[j], group.plot="G_Rank")
   dev.off()
 }
