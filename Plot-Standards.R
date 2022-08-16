@@ -11,7 +11,10 @@ data.qual$prop<-data.qual.prop$prop
 
 ##write out dataset
 write.csv(data.qual, paste0("Output/data.qual.",Sys.Date(),".csv"), row.names=F)
-data.qual<-read.csv("Output/data.qual.csv")
+data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
+
+##add years to dat.rank
+dat.rank$Year<-format(dat.rank$G_RANK_REVIEW_DATE2, format = "%Y") %>% as.numeric()
 
 ##create function to make donut charts
 donut.plot <- function(data.plot, standard.plot, group.plot) {
@@ -57,13 +60,13 @@ for (j in 1:length(standards)) {
 
 ##Histogram of year of last review 
 ##Break up by G/T rank 
-fig <- ggplot(data = dat.rank, aes(G_RANK_REVIEW_DATE2)) +
-  geom_histogram() +
+fig <- ggplot(data = dat.rank, aes(Year)) +
+  geom_bar() +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust=1, color="black"), axis.text.y = element_text(color="black")) +
-  scale_x_date(date_breaks = "2 years", date_labels = "%Y", expand = c(0,0), limits = c(min(dat.rank$G_RANK_REVIEW_DATE2), max(dat.rank$G_RANK_REVIEW_DATE2))) +
+  scale_x_continuous(breaks = scales::breaks_pretty(n = 10)) +
   xlab("G Rank Review Date") +
-  scale_y_continuous(expand=c(0,0))
+  scale_y_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=10))
 fig
 
 ##print out this version for all g ranks combined
@@ -71,25 +74,14 @@ png(filename = "Output/fig.rankreviewdate.png", width = 6.5, height = 3, units =
 print(fig)
 dev.off()
 
-
-##trying density plot
-fig <- ggplot(data = dat.rank, aes(G_RANK_REVIEW_DATE2, after_stat(density),colour = G_RANK)) +
-  geom_freqpoly(bins=10) +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust=1, color="black"), axis.text.y = element_text(color="black")) +
-  scale_x_date(date_breaks = "4 years", date_labels = "%Y", expand = c(0,0), limits = c(min(dat.rank$G_RANK_REVIEW_DATE2), max(dat.rank$G_RANK_REVIEW_DATE2))) +
-  xlab("G Rank Review Date") +
-  scale_y_continuous(expand=c(0,0))
-fig
-
 ##hist with facets
-fig <- ggplot(data = dat.rank, aes(G_RANK_REVIEW_DATE2)) +
-  geom_histogram(bins=10) +
+fig <- ggplot(data = dat.rank, aes(Year)) +
+  geom_bar() +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust=1, color="black"), axis.text.y = element_text(color="black")) +
-  scale_x_date(date_breaks = "4 years", date_labels = "%Y", expand = c(0,0), limits = c(min(dat.rank$G_RANK_REVIEW_DATE2), max(dat.rank$G_RANK_REVIEW_DATE2))) +
+  scale_x_continuous(breaks = scales::breaks_pretty(n = 10)) +
   xlab("G Rank Review Date") +
-  scale_y_continuous(expand=c(0,0))
+  scale_y_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=5))
 fig <- fig + facet_wrap(.~G_RANK, scales = "free", ncol=2) + theme(strip.background = element_rect(colour = "white", fill = "white"))
 fig
 

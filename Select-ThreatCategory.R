@@ -30,7 +30,7 @@ for (j in 1:ceiling((length(id.vector)/max.length))) {
   from element_global egt, scientific_name_dvw sn, el_global_threats_assess eta
     where (egt.element_global_id IN ", id.temp, ")
       and egt.gname_id = sn.scientific_name_id
-  and egt.gname_id = eta.element_global_id")
+  and egt.element_global_id = eta.element_global_id")
   
   dat.temp2<-sqlQuery(con, qry) ##import the queried table
   ##join the two tables

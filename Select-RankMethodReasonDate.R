@@ -15,7 +15,7 @@ for (j in 1:ceiling((length(id.vector)/max.length))) {
   ##then query the database and write out to vector that gets added to
   
   ##get all element global ids and g ranks
-  qry <- paste0("SELECT EGT.element_global_id, egt.rounded_g_rank, sn.NAME_CATEGORY
+  qry <- paste0("SELECT EGT.element_global_id, egt.g_primary_common_name , egt.rounded_g_rank, sn.NAME_CATEGORY
   
   from element_global egt, scientific_name_dvw sn
     where (egt.element_global_id IN ", id.temp, ")
@@ -24,12 +24,12 @@ for (j in 1:ceiling((length(id.vector)/max.length))) {
   dat.temp<-sqlQuery(con, qry)
   
   ##then get element ids with rank methods
-  qry <- paste0("SELECT EGT.element_global_id, egt.rounded_g_rank, sn.NAME_CATEGORY, egr.d_rank_method_used_id, rmu.rank_method_used_desc
+  qry <- paste0("SELECT EGT.element_global_id, egt.rounded_g_rank, sn.NAME_CATEGORY, egr.d_rank_method_used_id, rmu.rank_method_used_desc, rmu.external_desc
   
   from element_global egt, scientific_name_dvw sn, element_global_rank egr, d_rank_method_used rmu
     where (egt.element_global_id IN ", id.temp, ")
       and egt.gname_id = sn.scientific_name_id
-  and egt.gname_id = egr.element_global_id
+  and egt.element_global_id = egr.element_global_id
   and egr.d_rank_method_used_id = rmu.d_rank_method_used_id")
   
   dat.temp2<-sqlQuery(con, qry) ##import the queried table
@@ -40,7 +40,7 @@ for (j in 1:ceiling((length(id.vector)/max.length))) {
   from element_global egt, scientific_name_dvw sn, element_global_rank egr
     where (egt.element_global_id IN ", id.temp, ")
       and egt.gname_id = sn.scientific_name_id
-  and egt.gname_id = egr.element_global_id")
+  and egt.element_global_id = egr.element_global_id")
   
   dat.temp3<-sqlQuery(con, qry) ##import the queried table
   
@@ -58,13 +58,13 @@ for (j in 1:ceiling((length(id.vector)/max.length))) {
   dat.temp$Rank_Method<-F
   dat.temp$Rank_Method[which(!is.na(dat.temp$D_RANK_METHOD_USED_ID))]<-T
   dat.temp$Rank_Calculator<-F
-  dat.temp$Rank_Calculator[which(grepl(x = dat.temp$RANK_METHOD_USED_DESC, pattern = "Rank calculation", fixed = T))]<-T
+  dat.temp$Rank_Calculator[which(dat.temp$EXTERNAL_DESC %in% c("Ranked by calculator", "Calculated rank revised by expert"))]<-T
   dat.temp$Rank_Reason<-F
   dat.temp$Rank_Reason[which(!is.na(dat.temp$G_RANK_REASONS))]<-T
   
   ##summarise in the loop so dataframe doesn't get too big
   #dat.temp<- table(subset(dat.temp, select = c(NAME_CATEGORY, ROUNDED_G_RANK, Rank_Method, Rank_Reason, Rank_Calculator, G_RANK_REVIEW_DATE))) %>% data.frame() ##given huge number of combinations this now gets huge
-  dat.temp<- subset(dat.temp, select = c(NAME_CATEGORY, ROUNDED_G_RANK, Rank_Method, Rank_Reason, Rank_Calculator, G_RANK_REVIEW_DATE))
+  dat.temp<- subset(dat.temp, select = c(ELEMENT_GLOBAL_ID, G_PRIMARY_COMMON_NAME, NAME_CATEGORY, ROUNDED_G_RANK, Rank_Method, Rank_Reason, Rank_Calculator, G_RANK_REVIEW_DATE, D_RANK_METHOD_USED_ID))
   dat.temp$x<-x
   dat.temp$y<-y
   dat<-rbind(dat, dat.temp)
@@ -122,7 +122,7 @@ dat7<-subset(dat7, !(standard=="G_Rank_Review_Date" & G_RANK=="GX/TX"))
 names(dat7)[names(dat7) == 'G_RANK'] <- 'group'
 
 ##if need to remove existing data from master dataframe first
-data.qual<-subset(data.qual, subset = !(standard %in% standards.temp), select = -prop)
+#data.qual<-subset(data.qual, subset = !(standard %in% standards.temp), select = -prop)
 
 data.qual<-rbind(data.qual, dat3, dat4, dat5, dat6)
 data.qual<-rbind(data.qual, subset(dat7, select= names(data.qual)))

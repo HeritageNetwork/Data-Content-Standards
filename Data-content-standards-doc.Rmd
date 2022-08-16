@@ -81,15 +81,33 @@ Fig `r figure.num`. Percent of elements with rank reasons statement by G rank
 
 6. Indication of the reason for the most recent rank change. 
 
-Percent of elements with rank change reasons indicated 
+```{r, echo=FALSE}
+knitr::include_graphics(path="Output/fig.Rank_Change_Reason.taxa.png")
+figure.num<-figure.num+1
+```
+Fig `r figure.num`. Percent of elements with rank change reasons indicated 
 
-PLOTS IN PROGRESS
+```{r, echo=FALSE}
+knitr::include_graphics(path="Output/fig.Rank_Change_Reason.GRank.png")
+figure.num<-figure.num+1
+```
+Fig `r figure.num`. Percent of elements with rank change reasons indicated by G rank
+
 
 7. Habitat categories indicated. 
 
-Percent of elements with at least habitat category marked
+```{r, echo=FALSE}
+knitr::include_graphics(path="Output/fig.Habitat_Categories.taxa.png")
+figure.num<-figure.num+1
+```
+**Fig `r figure.num`**. Percent of elements with at least one habitat category selected
 
-PLOTS IN PROGRESS
+```{r, echo=FALSE}
+knitr::include_graphics(path="Output/fig.Habitat_Categories.GRank.png")
+figure.num<-figure.num+1
+```
+**Fig `r figure.num`**. Percent of elements with at least one habitat category selected by G Rank
+
 
 8. A review of the global status rank at least every 10 years (except GX and TX). 
 
