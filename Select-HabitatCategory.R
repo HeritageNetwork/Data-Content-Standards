@@ -1,4 +1,4 @@
-##step 5
+##step 4
 ##Habitat categories indicated.
 
 ##Percent of elements with at least habitat category marked
@@ -89,11 +89,6 @@ and (egt.element_global_id IN ", id.temp, ")")
   dat.temp<-sqlQuery(con, qry); head(dat.temp) ##import the queried table
   dat.temp$Habitat_Categories<-F
   dat.temp$Habitat_Categories[which(dat.temp$HAS_G_HABITAT_MATRIX=="Y")]<-T
-  
-  ##summarise in the loop so dataframe doesn't get too big
-  dat.temp<- table(subset(dat.temp, select = c(NAME_CATEGORY, ROUNDED_G_RANK, Habitat_Categories))) %>% data.frame()
-  dat.temp$x<-x
-  dat.temp$y<-y
   dat<-rbind(dat, dat.temp)
   x <- y +1
   y <- min(c(x-1+max.length,length(id.vector)))
@@ -102,35 +97,20 @@ and (egt.element_global_id IN ", id.temp, ")")
 # When finished, it's a good idea to close the connection
 odbcClose(con)
 
-##summarize across looped ids
-dat2<-dat
-dat2$taxa<-NA
-dat2$taxa[which(dat2$NAME_CATEGORY %in% c("Invertebrate Animal", "Vertebrate Animal"))]<-"Animals"
-dat2$taxa[which(dat2$NAME_CATEGORY == "Vascular Plant")]<-"Plants"
-##Group G and T ranks
-dat2 <- dat2 %>% dplyr::mutate(G_RANK = dplyr::case_when(
-  ROUNDED_G_RANK %in% c("G1", "T1") ~ "G1/T1",
-  ROUNDED_G_RANK %in% c("G2", "T2") ~ "G2/T2",
-  ROUNDED_G_RANK %in% c("G3", "T3") ~ "G3/T3",
-  ROUNDED_G_RANK %in% c("G4", "T4") ~ "G4/T4",
-  ROUNDED_G_RANK %in% c("G5", "T5") ~ "G5/T5",
-  ROUNDED_G_RANK %in% c("GH", "TH") ~ "GH/TH",
-  ROUNDED_G_RANK %in% c("GX", "TX") ~ "GX/TX",
-  ROUNDED_G_RANK %in% c("GNA", "TNA") ~ "GNA/TNA",
-  ROUNDED_G_RANK %in% c("GNR", "TNR") ~ "GNR/TNR",
-  ROUNDED_G_RANK %in% c("GU", "TU") ~ "GU/TU"
-))
+egt.global <- left_join(egt.global, subset(dat, select = c(ELEMENT_GLOBAL_ID, HAS_G_RANK_REASONS, HAS_G_THREAT_GRID, Habitat_Categories)))
 
-dat3<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Habitat_Categories) %>% dplyr::summarise(n=sum(Freq), group.type="taxa") %>% data.frame()
-colnames(dat3) <- c("group", "value", "n", "group.type")
-dat3$standard<-"Habitat_Categories"
+write.csv(egt.global, "Output/PrimarySubsetGlobal.csv", row.names=F)
 
-dat4<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(G_RANK, Habitat_Categories) %>% dplyr::summarise(n=sum(Freq), group.type="G_Rank") %>% data.frame()
-colnames(dat4) <- c("group", "value", "n", "group.type")
-dat4$standard<-"Habitat_Categories"
+#dat3<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Habitat_Categories) %>% dplyr::summarise(n=sum(Freq), group.type="taxa") %>% data.frame()
+#colnames(dat3) <- c("group", "value", "n", "group.type")
+#dat3$standard<-"Habitat_Categories"
+
+#dat4<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(G_RANK, Habitat_Categories) %>% dplyr::summarise(n=sum(Freq), group.type="G_Rank") %>% data.frame()
+#colnames(dat4) <- c("group", "value", "n", "group.type")
+#dat4$standard<-"Habitat_Categories"
 
 ##if want to replace what's already in the main data table
 #data.qual<-subset(data.qual, !standard=="Habitat_Categories", -prop) ##first remove existing values
 
-data.qual<-rbind(data.qual, subset(dat3, select= names(data.qual)))
-data.qual<-rbind(data.qual, subset(dat4, select= names(data.qual)))
+#data.qual<-rbind(data.qual, subset(dat3, select= names(data.qual)))
+#data.qual<-rbind(data.qual, subset(dat4, select= names(data.qual)))

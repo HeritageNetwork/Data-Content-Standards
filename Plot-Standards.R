@@ -2,8 +2,8 @@
 ##Plots of data content standards
 ##doesn't work for non spatial snapshot yet
 
-data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
-dat.rank<-read.csv("Output/data.rank.csv")
+#data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
+#dat.rank<-read.csv("Output/data.rank.csv")
 
 ##create function to make donut charts
 donut.plot <- function(data.plot, standard.plot, group.plot) {
@@ -17,7 +17,7 @@ donut.plot <- function(data.plot, standard.plot, group.plot) {
   colnames(label)<-c("group", "group.type","label")
   
   data.plot <- dplyr::left_join(data.plot, label)
-  data.plot<-subset(data.plot, group.type==group.plot)
+  data.plot<-subset(data.plot, group.type %in% group.plot)
   
   mycols <- c("lightgrey", "seagreen4", "gold", "#0073C2FF")
   fig.temp <- ggplot(data.plot, aes(x = 2, y = prop, fill = value)) +
@@ -49,7 +49,7 @@ for (j in 1:length(standards)) {
 
 ##Histogram of year of last review 
 ##Break up by G/T rank 
-fig <- ggplot(data = dat.rank, aes(Year)) +
+fig <- ggplot(data = dat, aes(Year)) +
   geom_bar() +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust=1, color="black"), axis.text.y = element_text(color="black")) +
@@ -64,14 +64,15 @@ print(fig)
 dev.off()
 
 ##hist with facets
-fig <- ggplot(data = dat.rank, aes(Year)) +
+data.plot <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GH/TH", "GNA/TNA", "GNR/TNR", "GU/TU", "GX/TX")))
+fig <- ggplot(data = data.plot, aes(Year)) +
   geom_bar() +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust=1, color="black"), axis.text.y = element_text(color="black")) +
-  scale_x_continuous(breaks = scales::breaks_pretty(n = 10)) +
+  scale_x_continuous(breaks = scales::breaks_pretty(n = 10), limits = c(min(dat$Year, na.rm=T), max(dat$Year, na.rm = T))) +
   xlab("G Rank Review Date") +
   scale_y_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=5))
-fig <- fig + facet_wrap(.~G_RANK, scales = "free", ncol=2) + theme(strip.background = element_rect(colour = "white", fill = "white"))
+fig <- fig + facet_grid(G_RANK~taxa, scales = "free") + theme(strip.background = element_rect(colour = "white", fill = "white"))
 fig
 
 ##print out this version for split up g ranks

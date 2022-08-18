@@ -6,18 +6,23 @@
 
 # Load RODBC package
 library(RODBC)
+library(tidyverse)
 
 ##NEED TO FIRST CONNECT TO VPN
 con<-odbcConnect("BIOSNAPDB07", uid="biotics_report", pwd=rstudioapi::askForPassword("Password")) ##open connection to database
 #sqlTables(con) ##show tables in the database
 
 
-qry <- "SELECT DISTINCT egt.element_global_id, gname.scientific_name, nc.name_category_desc, egt.rounded_g_rank
+qry <- "SELECT DISTINCT egt.element_global_id, gname.scientific_name, egt.g_primary_common_name, nc.name_category_desc, egt.rounded_g_rank, egr.d_rank_method_used_id, rmu.rank_method_used_desc, rmu.external_desc, egr.g_rank_reasons, EGT.G_RANK_REVIEW_DATE
 FROM  element_global egt
 LEFT JOIN scientific_name gname
   ON egt.gname_id = gname.scientific_name_id
 LEFT JOIN d_name_category nc
   ON gname.d_name_category_id = nc.d_name_category_id
+LEFT JOIN element_global_rank egr
+    ON egt.element_global_id = egr.element_global_id
+LEFT JOIN d_rank_method_used rmu
+    ON egr.d_rank_method_used_id = rmu.d_rank_method_used_id
 WHERE
 /* criteria that applies to all records - active, regular and confident in US or Canada */ 
   egt.inactive_ind = 'N' 
@@ -88,4 +93,4 @@ odbcClose(con)
 
 write.csv(egt.global, "Output/PrimarySubsetGlobal.csv", row.names=F)
 
-data.qual<-data.frame(group=NA, value=NA, n=NA, standard=NA, group.type=NA)
+#data.qual<-data.frame(group=NA, value=NA, n=NA, standard=NA, group.type=NA)
