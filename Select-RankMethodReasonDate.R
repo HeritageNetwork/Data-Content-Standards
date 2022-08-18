@@ -1,5 +1,5 @@
 ##Select Rank method and rank reason
-##step 3
+##step 2
 
 con<-odbcConnect("BIOSNAPDB07", uid="biotics_report", pwd=rstudioapi::askForPassword("Password")) ##open connection to database
 
@@ -15,46 +15,19 @@ for (j in 1:ceiling((length(id.vector)/max.length))) {
   ##then query the database and write out to vector that gets added to
   
   ##get all element global ids and g ranks
-  qry <- paste0("SELECT EGT.element_global_id, egt.g_primary_common_name , egt.rounded_g_rank, sn.NAME_CATEGORY
-  
-  from element_global egt, scientific_name_dvw sn
-    where (egt.element_global_id IN ", id.temp, ")
-      and egt.gname_id = sn.scientific_name_id")
+  qry <- paste0("SELECT EGT.element_global_id, egt.g_primary_common_name , egt.rounded_g_rank, sn.NAME_CATEGORY, egr.d_rank_method_used_id, rmu.rank_method_used_desc, rmu.external_desc, egr.g_rank_reasons, EGT.G_RANK_REVIEW_DATE
+  from element_global egt
+  LEFT JOIN scientific_name_dvw sn
+    ON egt.gname_id = sn.scientific_name_id
+  LEFT JOIN element_global_rank egr
+    ON egt.element_global_id = egr.element_global_id
+  LEFT JOIN d_rank_method_used rmu
+    ON egr.d_rank_method_used_id = rmu.d_rank_method_used_id
+  where (egt.element_global_id IN ", id.temp, ")")
   
   dat.temp<-sqlQuery(con, qry)
   
-  ##then get element ids with rank methods
-  qry <- paste0("SELECT EGT.element_global_id, egt.rounded_g_rank, sn.NAME_CATEGORY, egr.d_rank_method_used_id, rmu.rank_method_used_desc, rmu.external_desc
-  
-  from element_global egt, scientific_name_dvw sn, element_global_rank egr, d_rank_method_used rmu
-    where (egt.element_global_id IN ", id.temp, ")
-      and egt.gname_id = sn.scientific_name_id
-  and egt.element_global_id = egr.element_global_id
-  and egr.d_rank_method_used_id = rmu.d_rank_method_used_id")
-  
-  dat.temp2<-sqlQuery(con, qry) ##import the queried table
-  
-  ##get element ids with rank reasons statement
-  qry <- paste0("SELECT EGT.element_global_id, egt.rounded_g_rank, sn.NAME_CATEGORY, egr.g_rank_reasons
-  
-  from element_global egt, scientific_name_dvw sn, element_global_rank egr
-    where (egt.element_global_id IN ", id.temp, ")
-      and egt.gname_id = sn.scientific_name_id
-  and egt.element_global_id = egr.element_global_id")
-  
-  dat.temp3<-sqlQuery(con, qry) ##import the queried table
-  
-  qry <- paste0("SELECT EGT.element_global_id, egt.rounded_g_rank, sn.NAME_CATEGORY, EGT.G_RANK_REVIEW_DATE
-  from element_global egt, scientific_name_dvw sn
-    where (egt.element_global_id IN ", id.temp, ")
-      and egt.gname_id = sn.scientific_name_id")
-  
-  dat.temp4<-sqlQuery(con, qry) ##import the queried table
-  
-  ##join the two tables
-  dat.temp<-dplyr::left_join(dat.temp, dat.temp2)
-  dat.temp<-dplyr::left_join(dat.temp, dat.temp3)
-  dat.temp<-dplyr::left_join(dat.temp, dat.temp4)
+  ##join the tables
   dat.temp$Rank_Method<-F
   dat.temp$Rank_Method[which(!is.na(dat.temp$D_RANK_METHOD_USED_ID))]<-T
   dat.temp$Rank_Calculator<-F

@@ -1,4 +1,4 @@
-##Step 4
+##Step 3
 ##Select-ThreatCatgory
 ##Threat categories indicated, even if assessed and found to be “unknown” (GH/G1/G2/G3 and TH/T1/T2/T3 taxa only).
 
@@ -78,7 +78,7 @@ colnames(dat4) <- c("group", "value", "n", "group.type")
 dat4$standard<-"Threat_Category"
 
 ##if want to replace what's already in the main data table
-data.qual<-subset(data.qual, !standard=="Threat_Category") ##first remove existing values
+#data.qual<-subset(data.qual, !standard=="Threat_Category") ##first remove existing values
 
 data.qual<-rbind(data.qual, subset(dat3, select= names(data.qual)))
 data.qual<-rbind(data.qual, subset(dat4, select= names(data.qual)))

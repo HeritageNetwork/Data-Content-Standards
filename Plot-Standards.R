@@ -2,19 +2,8 @@
 ##Plots of data content standards
 ##doesn't work for non spatial snapshot yet
 
-library(ggplot2)
-
-##convert counts into proportions of cases that are T/F for each standards and plants vs animals vs all
-data.qual<-dplyr::arrange(.data = data.qual, standard, group, group.type, value)
-data.qual.prop<-data.qual %>% dplyr::group_by(standard, group, group.type) %>% dplyr::summarise(prop = n/sum(n)) %>% data.frame()
-data.qual$prop<-data.qual.prop$prop
-
-##write out dataset
-write.csv(data.qual, paste0("Output/data.qual.",Sys.Date(),".csv"), row.names=F)
 data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
-
-##add years to dat.rank
-dat.rank$Year<-format(dat.rank$G_RANK_REVIEW_DATE2, format = "%Y") %>% as.numeric()
+dat.rank<-read.csv("Output/data.rank.csv")
 
 ##create function to make donut charts
 donut.plot <- function(data.plot, standard.plot, group.plot) {
@@ -22,7 +11,7 @@ donut.plot <- function(data.plot, standard.plot, group.plot) {
   data.plot <- subset(data.plot, standard==standard.plot) %>%
     dplyr::group_by(group, group.type) %>%
     dplyr::arrange(desc(value)) %>%
-    #dplyr::mutate(lab.ypos = cumsum(prop) - 0.5*prop) %>%
+    dplyr::mutate(lab.ypos = cumsum(prop) - 0.5*prop) %>%
     data.frame()
   label <- subset(data.plot, value==T | value=="0-10 years", select=c(group, group.type, prop)) %>% dplyr::group_by(group, group.type) %>% data.frame()
   colnames(label)<-c("group", "group.type","label")
@@ -34,7 +23,7 @@ donut.plot <- function(data.plot, standard.plot, group.plot) {
   fig.temp <- ggplot(data.plot, aes(x = 2, y = prop, fill = value)) +
     geom_bar(stat = "identity", color = "white") +
     coord_polar(theta = "y", start = 0)+
-    #geom_text(aes(y = lab.ypos, label = paste0("n = ", n, ", \n", round(prop*100,0), "%")), color = "white")+
+    geom_text(aes(y = lab.ypos, label = format(n, big.mark=",")), color = "white")+
     geom_text(aes(y = 1, x = 1, label = paste0(round(label*100,0), "%")), color = c("black"), size = 6) +
     facet_wrap(.~group, ncol = 5) +
     scale_fill_manual(values = mycols, name=gsub(standard.plot, pattern="_", replace=" ")) +

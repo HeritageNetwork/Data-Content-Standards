@@ -1,4 +1,5 @@
-##step 5
+##step 4
+####!!!!!!!!!!!!!!!!!!!!!!!getting incorrect number of rows. need to correct
 
 ##Indication of the reason for the most recent rank change. 
 ##Percent of elements with rank change reasons indicated 
@@ -18,32 +19,21 @@ y <- min(c(max.length,length(id.vector)))
 dat<-dim(0)
 for (j in 1:ceiling((length(id.vector)/max.length))) {
   id.temp<-paste0("(", paste0(id.vector[x:y], collapse = ", "), ")")
-  ##then query the database and write out to vector that gets added to
-  
-  ##get all element global ids and g ranks
-  qry <- paste0("SELECT EGT.element_global_id, sn.NAME_CATEGORY, egt.rounded_g_rank, egt.g_rank_change_date
-  from element_global egt, scientific_name_dvw sn
-    where (egt.element_global_id IN ", id.temp, ")
-      and egt.gname_id = sn.scientific_name_id")
-  
-  dat.temp<-sqlQuery(con, qry)
   
   ##then get element ids with rank change reasons; ASSUMES THAT DATES MATCH PERFECTLY FOR G RANK CHANGE AND ENTRY DATES
-  qry <- paste0("SELECT EGT.element_global_id, sn.NAME_CATEGORY, egt.rounded_g_rank, egt.g_rank_change_date, rc.rank_change_entry_date, rc.d_rank_change_reason_id
-  from element_global egt, scientific_name_dvw sn, element_grank_change rc
-    where (egt.element_global_id IN ", id.temp, ")
-      and egt.gname_id = sn.scientific_name_id
-      and rc.rank_change_entry_date = EGT.g_rank_change_date
-      and rc.element_global_id = egt.element_global_id")
+  qry <- paste0("SELECT DISTINCT EGT.element_global_id, egt.rounded_g_rank, egt.g_rank_change_date, rc.rank_change_entry_date, rc.d_rank_change_reason_id
+  from element_global egt
+  LEFT JOIN element_grank_change rc
+    ON egt.element_global_id = rc.element_global_id
+  WHERE (egt.element_global_id IN ", id.temp, ")
+    and rc.rank_change_entry_date = EGT.g_rank_change_date
+    AND rc.rank_change_entry_date IS NOT NULL")
   
-  dat.temp2<-sqlQuery(con, qry) ##import the queried table
+  dat.temp<-sqlQuery(con, qry) ##import the queried table
   ##join the two tables
-  dat.temp3<-dplyr::left_join(dat.temp, dat.temp2)
-  dat.temp3$Rank_Change_Reason<-F
-  dat.temp3$Rank_Change_Reason[which(!is.na(dat.temp3$D_RANK_CHANGE_REASON_ID))]<-T
-  
-  ##summarise in the loop so dataframe doesn't get too big
-  dat.temp<- table(subset(dat.temp3, select = c(NAME_CATEGORY, ROUNDED_G_RANK, Rank_Change_Reason))) %>% data.frame()
+  dat.temp<-dplyr::left_join(egt.global[x:y,], dat.temp)
+  dat.temp$Rank_Change_Reason<-F
+  dat.temp$Rank_Change_Reason[which(!is.na(dat.temp$D_RANK_CHANGE_REASON_ID))]<-T
   dat.temp$x<-x
   dat.temp$y<-y
   dat<-rbind(dat, dat.temp)
@@ -56,9 +46,11 @@ odbcClose(con)
 
 ##summarize across looped ids
 dat2<-dat
+##select rank change reason code that is not NA if there are multiple rows
+dat2 <- dat2 %>% group_by(ELEMENT_GLOBAL_ID, SCIENTIFIC_NAME, NAME_CATEGORY_DESC, ROUNDED_G_RANK, G_RANK_CHANGE_DATE, RANK_CHANGE_ENTRY_DATE) %>% summarise(D_RANK_CHANGE_REASON_ID = max(D_RANK_CHANGE_REASON_ID, na.rm = T), Rank_Change_Reason = is.element(T, Rank_Change_Reason)) %>% data.frame()
 dat2$taxa<-NA
-dat2$taxa[which(dat2$NAME_CATEGORY %in% c("Invertebrate Animal", "Vertebrate Animal"))]<-"Animals"
-dat2$taxa[which(dat2$NAME_CATEGORY == "Vascular Plant")]<-"Plants"
+dat2$taxa[which(dat2$NAME_CATEGORY_DESC %in% c("Invertebrate Animal", "Vertebrate Animal"))]<-"Animals"
+dat2$taxa[which(dat2$NAME_CATEGORY_DESC == "Vascular Plant")]<-"Plants"
 ##Group G and T ranks
 dat2 <- dat2 %>% dplyr::mutate(G_RANK = dplyr::case_when(
   ROUNDED_G_RANK %in% c("G1", "T1") ~ "G1/T1",
@@ -73,16 +65,16 @@ dat2 <- dat2 %>% dplyr::mutate(G_RANK = dplyr::case_when(
   ROUNDED_G_RANK %in% c("GU", "TU") ~ "GU/TU"
 ))
 
-dat3<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Rank_Change_Reason) %>% dplyr::summarise(n=sum(Freq), group.type="taxa") %>% data.frame()
+dat3<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(taxa, Rank_Change_Reason) %>% dplyr::summarise(n=dplyr::n(), group.type="taxa") %>% data.frame()
 colnames(dat3) <- c("group", "value", "n", "group.type")
 dat3$standard<-"Rank_Change_Reason"
 
-dat4<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(G_RANK, Rank_Change_Reason) %>% dplyr::summarise(n=sum(Freq), group.type="G_Rank") %>% data.frame()
+dat4<-subset(dat2, taxa %in% c("Animals", "Plants")) %>% dplyr::group_by(G_RANK, Rank_Change_Reason) %>% dplyr::summarise(n=dplyr::n(), group.type="G_Rank") %>% data.frame()
 colnames(dat4) <- c("group", "value", "n", "group.type")
 dat4$standard<-"Rank_Change_Reason"
 
 ##if want to replace what's already in the main data table
-#data.qual<-subset(data.qual, !standard=="Rank_Change_Reason", select = -prop) ##first remove existing values
+#data.qual<-subset(data.qual, !standard=="Rank_Change_Reason", -prop) ##first remove existing values
 
 data.qual<-rbind(data.qual, subset(dat3, select= names(data.qual)))
 data.qual<-rbind(data.qual, subset(dat4, select= names(data.qual)))
