@@ -1,4 +1,4 @@
-##step 7
+##step 6
 ##Plots of data content standards
 ##doesn't work for non spatial snapshot yet
 

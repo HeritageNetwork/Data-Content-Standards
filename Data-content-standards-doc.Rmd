@@ -50,19 +50,19 @@ figure.num<-figure.num+1
 Fig `r figure.num`. % of elements that use the rank calculator by G rank
 
 4. Threat categories indicated, even if assessed and found to be “unknown” (GH/G1/G2/G3 and TH/T1/T2/T3 taxa only).  
-Percent of at risk elements with at least one threat category marked
+Percent of at-risk elements with at least one threat category marked
 
 ```{r, echo=FALSE}
 knitr::include_graphics(path="Output/fig.Threat_Category.taxa.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of at risk elements with at least one threat category marked
+Fig `r figure.num`. Percent of at-risk elements with at least one threat category marked
 
 ```{r, echo=FALSE}
 knitr::include_graphics(path="Output/fig.Threat_Category.GRank.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of elements with at least one threat category marked by G rank
+Fig `r figure.num`. Percent of at-risk elements with at least one threat category marked by G rank
 
 5. A rank reasons statement. 
 Percent of elements with rank reasons statement (i.e., text in field) 
