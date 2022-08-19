@@ -30,7 +30,6 @@ dat <- dat %>% dplyr::mutate(G_RANK = dplyr::case_when(
 dat$G_RANK_REVIEW_DATE2<-dat$G_RANK_REVIEW_DATE %>% as.character() %>% as.Date(format= "%Y-%m-%d")
 dat <- dat %>% dplyr::mutate(G_Rank_Review_Date = dplyr::case_when(
   (Sys.Date() - dat$G_RANK_REVIEW_DATE2) <= 365*10 ~ "0-10 years",
-  #(Sys.Date() - dat$G_RANK_REVIEW_DATE2) >= 365*5 & (Sys.Date() - dat$G_RANK_REVIEW_DATE2) < 365*10 ~ "5-10 years",
   (Sys.Date() - dat$G_RANK_REVIEW_DATE2) > 365*10 | is.na(dat$G_RANK_REVIEW_DATE2) ~ ">10 years"
 ))
 
@@ -40,84 +39,36 @@ dat$Rank_Method[which(!is.na(dat$D_RANK_METHOD_USED_ID))]<-T
 dat$Rank_Calculator<-F
 dat$Rank_Calculator[which(dat$EXTERNAL_DESC %in% c("Ranked by calculator", "Calculated rank revised by expert"))]<-T
 dat$Rank_Reason<-F
-dat$Rank_Reason[which(!is.na(dat$G_RANK_REASONS))]<-T
-dat$Rank_Change_Reason<-F
-dat$Rank_Change_Reason[which(!is.na(dat$D_RANK_CHANGE_REASON_ID))]<-T
 dat<-subset(dat, select = -G_RANK_REASONS)
 ##add years to dat
 dat$Year<-format(dat$G_RANK_REVIEW_DATE2, format = "%Y") %>% as.numeric()
 
 write.csv(dat, "Output/PrimarySubsetGlobal.csv", row.names=F)
 
-##wrangle data
-standards<-c("Threat_Category", "Rank_Change_Reason", "Habitat_Categories", "G_Rank", "G_Rank_Review_Date", "Rank_Method", "Rank_Calculator", "Rank_Reason")
+dat<-read.csv("Output/PrimarySubsetGlobal.csv")
 
-##data by taxa
-data.qual<-dim(0)
-dat.temp <- subset(dat, !is.na(taxa) & G_RANK %in% c("G1/T1", "G2/T2", "G3/T3", "GH/TH"), select = c(taxa, Threat_Category)) %>% group_by(taxa) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Threat_Category"; dat.temp$group.type<-"taxa"
-data.qual<-rbind(data.qual, dat.temp)
+##get dataset for taxa
+data.qual.taxa <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GNR/TNR", "GNA/TNA"))) %>% gather(key = "standard", value = "value", c(Habitat_Categories, Rank_Method, Rank_Calculator, Rank_Reason, Rank_Change_Reason, G_Rank_Review_Date)) %>% group_by(taxa, standard, value) %>% summarise(n=n()) %>% data.frame()
+data.qual.taxa <- subset(dat, !is.na(taxa) & G_RANK %in% c("G1/T1", "G2/T2", "G3/T3", "GH/TH")) %>% gather(key = "standard", value = "value", Threat_Category) %>% group_by(taxa, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.taxa)
+data.qual.taxa <- subset(dat, !is.na(taxa)) %>% gather(key = "standard", value = "value", G_Rank) %>% group_by(taxa, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.taxa)
 
-dat.temp <- subset(dat, !is.na(taxa), select = c(taxa, Rank_Change_Reason)) %>% group_by(taxa) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Rank_Change_Reason"; dat.temp$group.type<-"taxa"
-data.qual<-rbind(data.qual, dat.temp)
+##convert counts into proportions of cases that are T/F for each standard and plants vs animals
+data.qual.taxa<-dplyr::arrange(.data = data.qual.taxa, standard, taxa, value)
+data.qual.prop<-data.qual.taxa %>% dplyr::group_by(standard, taxa) %>% dplyr::summarise(prop = n/sum(n)) %>% data.frame()
+data.qual.taxa$prop<-data.qual.prop$prop
 
-dat.temp <- subset(dat, !is.na(taxa), select = c(taxa, Habitat_Categories)) %>% group_by(taxa) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Habitat_Categories"; dat.temp$group.type<-"taxa"
-data.qual<-rbind(data.qual, dat.temp)
-
-dat.temp <- subset(dat, !is.na(taxa), select = c(taxa, G_Rank)) %>% group_by(taxa) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"G_Rank"; dat.temp$group.type<-"taxa"
-data.qual<-rbind(data.qual, dat.temp)
-
-dat.temp <- subset(dat, !is.na(taxa), select = c(taxa, Rank_Method)) %>% group_by(taxa) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Rank_Method"; dat.temp$group.type<-"taxa"
-data.qual<-rbind(data.qual, dat.temp)
-
-dat.temp <- subset(dat, !is.na(taxa), select = c(taxa, Rank_Calculator)) %>% group_by(taxa) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Rank_Calculator"; dat.temp$group.type<-"taxa"
-data.qual<-rbind(data.qual, dat.temp)
-
-dat.temp <- subset(dat, !is.na(taxa), select = c(taxa, Rank_Reason)) %>% group_by(taxa) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Rank_Reason"; dat.temp$group.type<-"taxa"
-data.qual<-rbind(data.qual, dat.temp)
-
-##by grank
-dat.temp <- subset(dat, !is.na(taxa), select = c(G_RANK, Threat_Category)) %>% group_by(G_RANK) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Threat_Category"; dat.temp$group.type<-"G_Rank"
-data.qual<-rbind(data.qual, dat.temp)
-
-dat.temp <- subset(dat, !is.na(taxa), select = c(G_RANK, Rank_Change_Reason)) %>% group_by(G_RANK) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Rank_Change_Reason"; dat.temp$group.type<-"G_Rank"
-data.qual<-rbind(data.qual, dat.temp)
-
-dat.temp <- subset(dat, !is.na(taxa), select = c(G_RANK, Habitat_Categories)) %>% group_by(G_RANK) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Habitat_Categories"; dat.temp$group.type<-"G_Rank"
-data.qual<-rbind(data.qual, dat.temp)
-
-dat.temp <- subset(dat, !is.na(taxa), select = c(G_RANK, G_Rank)) %>% group_by(G_RANK) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"G_Rank"; dat.temp$group.type<-"G_Rank"
-data.qual<-rbind(data.qual, dat.temp)
-
-dat.temp <- subset(dat, !is.na(taxa), select = c(G_RANK, Rank_Method)) %>% group_by(G_RANK) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Rank_Method"; dat.temp$group.type<-"G_Rank"
-data.qual<-rbind(data.qual, dat.temp)
-
-dat.temp <- subset(dat, !is.na(taxa), select = c(G_RANK, Rank_Calculator)) %>% group_by(G_RANK) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Rank_Calculator"; dat.temp$group.type<-"G_Rank"
-data.qual<-rbind(data.qual, dat.temp)
-
-dat.temp <- subset(dat, !is.na(taxa), select = c(G_RANK, Rank_Reason)) %>% group_by(G_RANK) %>% table() %>% data.frame()
-names(dat.temp)<- c("group", "value", "n"); dat.temp$standard<-"Rank_Reason"; dat.temp$group.type<-"G_Rank"
-data.qual<-rbind(data.qual, dat.temp)
+##get dataset for combo of grank and taxa
+data.qual.grank <- subset(dat, !is.na(taxa)& !(G_RANK %in% c("GNR/TNR", "GNA/TNA"))) %>% gather(key = "standard", value = "value", c(Habitat_Categories, Rank_Method, Rank_Calculator, Rank_Reason, Rank_Change_Reason, G_Rank_Review_Date)) %>% group_by(taxa, G_RANK, standard, value) %>% summarise(n=n()) %>% data.frame()
+data.qual.grank <- subset(dat, !is.na(taxa) & G_RANK %in% c("G1/T1", "G2/T2", "G3/T3", "GH/TH")) %>% gather(key = "standard", value = "value", Threat_Category) %>% group_by(taxa, G_RANK, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.grank)
 
 ##convert counts into proportions of cases that are T/F for each standards and plants vs animals
-data.qual<-dplyr::arrange(.data = data.qual, standard, group, group.type, value)
-data.qual.prop<-data.qual %>% dplyr::group_by(standard, group, group.type) %>% dplyr::summarise(prop = n/sum(n)) %>% data.frame()
-data.qual$prop<-data.qual.prop$prop
+data.qual.grank<-dplyr::arrange(.data = data.qual.grank, standard, taxa, G_RANK, value)
+data.qual.prop<-data.qual.grank %>% dplyr::group_by(standard, taxa, G_RANK) %>% dplyr::summarise(prop = n/sum(n)) %>% data.frame()
+data.qual.grank$prop<-data.qual.prop$prop
 
 ##write out dataset
-#write.csv(data.qual, paste0("Output/data.qual.",Sys.Date(),".csv"), row.names=F)
+write.csv(data.qual.taxa, paste0("Output/data.qual.taxa",Sys.Date(),".csv"), row.names=F)
+write.csv(data.qual.grank, paste0("Output/data.qual.grank.",Sys.Date(),".csv"), row.names=F)
 
 ##check the number of observations for each standard
-subset(data.qual, group.type == "taxa") %>% group_by(standard) %>% summarise(sum(n))
+#subset(data.qual, group.type == "taxa") %>% group_by(standard) %>% summarise(sum(n))

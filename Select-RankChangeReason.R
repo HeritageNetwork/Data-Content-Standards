@@ -31,6 +31,7 @@ for (j in 1:ceiling((length(id.vector)/max.length))) {
   dat.temp2 <- dat.temp %>% group_by(ELEMENT_GLOBAL_ID) %>% summarise(Rank_Change_Reason = !all(is.na(D_RANK_CHANGE_REASON_ID))) %>% data.frame()
   ##join the two tables
   dat.temp<-dplyr::left_join(subset(egt.global[x:y,], select = ELEMENT_GLOBAL_ID), dat.temp2)
+  dat.temp$Rank_Change_Reason[which(is.na(dat.temp$Rank_Change_Reason))] <- F
   dat<-rbind(dat, dat.temp)
   x <- y +1
   y <- min(c(x-1+max.length,length(id.vector)))
