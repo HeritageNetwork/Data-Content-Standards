@@ -39,7 +39,7 @@ dat$Rank_Method[which(!is.na(dat$D_RANK_METHOD_USED_ID))]<-T
 dat$Rank_Calculator<-F
 dat$Rank_Calculator[which(dat$EXTERNAL_DESC %in% c("Ranked by calculator", "Calculated rank revised by expert"))]<-T
 dat$Rank_Reason<-F
-dat<-subset(dat, select = -G_RANK_REASONS)
+#dat<-subset(dat, select = -G_RANK_REASONS)
 ##add years to dat
 dat$Year<-format(dat$G_RANK_REVIEW_DATE2, format = "%Y") %>% as.numeric()
 

@@ -4,6 +4,9 @@
 
 #data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
 #dat.rank<-read.csv("Output/data.rank.csv")
+data.qual.taxa<- read.csv("Output/data.qual.taxa2022-08-18.csv")
+data.qual.grank <- read.csv("Output/data.qual.grank.2022-08-18.csv")
+dat<-read.csv("Output/PrimarySubsetGlobal.csv")
 
 ##create function to make donut charts for taxa
 donut.plot.taxa <- function(data.plot, standard.plot) {
@@ -60,7 +63,7 @@ donut.plot.grank <- function(data.plot, standard.plot) {
 }
 
 ##for loop that creates a donut chart for each standard and saves it
-standards<-unique(data.qual$standard)
+standards<-unique(data.qual.taxa$standard)
 for (j in 1:length(standards)) {
   png(filename = paste0("Output/fig.", standards[j],".taxa.png"), width = 1200, height = 1200*.8, res=200)
   donut.plot.taxa(data.plot = data.qual.taxa, standard.plot = standards[j])
