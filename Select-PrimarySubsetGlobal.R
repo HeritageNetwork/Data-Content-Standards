@@ -92,5 +92,3 @@ egt.global<-sqlQuery(con, qry); head(egt.global) ##import the queried table
 odbcClose(con)
 
 write.csv(egt.global, "Output/PrimarySubsetGlobal.csv", row.names=F)
-
-#data.qual<-data.frame(group=NA, value=NA, n=NA, standard=NA, group.type=NA)

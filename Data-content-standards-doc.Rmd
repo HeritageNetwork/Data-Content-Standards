@@ -14,6 +14,7 @@ figure.num<-0
 table.num<-0
 ```
 
+This report was produced using data content from the January 2022 snapshot of Central Biotics.
 
 A. All element global records should have: 
 

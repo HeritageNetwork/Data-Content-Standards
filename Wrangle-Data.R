@@ -39,6 +39,7 @@ dat$Rank_Method[which(!is.na(dat$D_RANK_METHOD_USED_ID))]<-T
 dat$Rank_Calculator<-F
 dat$Rank_Calculator[which(dat$EXTERNAL_DESC %in% c("Ranked by calculator", "Calculated rank revised by expert"))]<-T
 dat$Rank_Reason<-F
+dat$Rank_Reason[which(!is.na(dat$G_RANK_REASONS))]<-T
 #dat<-subset(dat, select = -G_RANK_REASONS)
 ##add years to dat
 dat$Year<-format(dat$G_RANK_REVIEW_DATE2, format = "%Y") %>% as.numeric()
@@ -48,7 +49,8 @@ write.csv(dat, "Output/PrimarySubsetGlobal.csv", row.names=F)
 dat<-read.csv("Output/PrimarySubsetGlobal.csv")
 
 ##get dataset for taxa
-data.qual.taxa <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GNR/TNR", "GNA/TNA"))) %>% gather(key = "standard", value = "value", c(Habitat_Categories, Rank_Method, Rank_Calculator, Rank_Reason, Rank_Change_Reason, G_Rank_Review_Date)) %>% group_by(taxa, standard, value) %>% summarise(n=n()) %>% data.frame()
+data.qual.taxa <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GNR/TNR", "GNA/TNA"))) %>% gather(key = "standard", value = "value", c(Habitat_Categories, Rank_Method, Rank_Calculator, Rank_Reason, G_Rank_Review_Date)) %>% group_by(taxa, standard, value) %>% summarise(n=n()) %>% data.frame()
+data.qual.taxa <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GNR/TNR", "GNA/TNA")) & !is.na(Rank_Change_Reason)) %>% gather(key = "standard", value = "value", Rank_Change_Reason) %>% group_by(taxa, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.taxa)
 data.qual.taxa <- subset(dat, !is.na(taxa) & G_RANK %in% c("G1/T1", "G2/T2", "G3/T3", "GH/TH")) %>% gather(key = "standard", value = "value", Threat_Category) %>% group_by(taxa, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.taxa)
 data.qual.taxa <- subset(dat, !is.na(taxa)) %>% gather(key = "standard", value = "value", G_Rank) %>% group_by(taxa, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.taxa)
 
@@ -58,7 +60,8 @@ data.qual.prop<-data.qual.taxa %>% dplyr::group_by(standard, taxa) %>% dplyr::su
 data.qual.taxa$prop<-data.qual.prop$prop
 
 ##get dataset for combo of grank and taxa
-data.qual.grank <- subset(dat, !is.na(taxa)& !(G_RANK %in% c("GNR/TNR", "GNA/TNA"))) %>% gather(key = "standard", value = "value", c(Habitat_Categories, Rank_Method, Rank_Calculator, Rank_Reason, Rank_Change_Reason, G_Rank_Review_Date)) %>% group_by(taxa, G_RANK, standard, value) %>% summarise(n=n()) %>% data.frame()
+data.qual.grank <- subset(dat, !is.na(taxa)& !(G_RANK %in% c("GNR/TNR", "GNA/TNA"))) %>% gather(key = "standard", value = "value", c(Habitat_Categories, Rank_Method, Rank_Calculator, Rank_Reason, G_Rank_Review_Date)) %>% group_by(taxa, G_RANK, standard, value) %>% summarise(n=n()) %>% data.frame()
+data.qual.grank <- subset(dat, !is.na(taxa)& !(G_RANK %in% c("GNR/TNR", "GNA/TNA")) & !is.na(Rank_Change_Reason)) %>% gather(key = "standard", value = "value", Rank_Change_Reason) %>% group_by(taxa, G_RANK, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.grank)
 data.qual.grank <- subset(dat, !is.na(taxa) & G_RANK %in% c("G1/T1", "G2/T2", "G3/T3", "GH/TH")) %>% gather(key = "standard", value = "value", Threat_Category) %>% group_by(taxa, G_RANK, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.grank)
 
 ##convert counts into proportions of cases that are T/F for each standards and plants vs animals
@@ -67,7 +70,7 @@ data.qual.prop<-data.qual.grank %>% dplyr::group_by(standard, taxa, G_RANK) %>% 
 data.qual.grank$prop<-data.qual.prop$prop
 
 ##write out dataset
-write.csv(data.qual.taxa, paste0("Output/data.qual.taxa",Sys.Date(),".csv"), row.names=F)
+write.csv(data.qual.taxa, paste0("Output/data.qual.taxa.",Sys.Date(),".csv"), row.names=F)
 write.csv(data.qual.grank, paste0("Output/data.qual.grank.",Sys.Date(),".csv"), row.names=F)
 
 ##check the number of observations for each standard

@@ -4,8 +4,8 @@
 
 #data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
 #dat.rank<-read.csv("Output/data.rank.csv")
-data.qual.taxa<- read.csv("Output/data.qual.taxa2022-08-18.csv")
-data.qual.grank <- read.csv("Output/data.qual.grank.2022-08-18.csv")
+data.qual.taxa<- read.csv("Output/data.qual.taxa.2022-08-29.csv")
+data.qual.grank <- read.csv("Output/data.qual.grank.2022-08-29.csv")
 dat<-read.csv("Output/PrimarySubsetGlobal.csv")
 
 ##create function to make donut charts for taxa
