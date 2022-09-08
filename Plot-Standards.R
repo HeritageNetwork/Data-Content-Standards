@@ -4,8 +4,8 @@
 
 #data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
 #dat.rank<-read.csv("Output/data.rank.csv")
-data.qual.taxa<- read.csv("Output/data.qual.taxa.2022-08-29.csv")
-data.qual.grank <- read.csv("Output/data.qual.grank.2022-08-29.csv")
+data.qual.taxa<- read.csv("Output/data.qual.taxa.2022-09-07.csv")
+data.qual.grank <- read.csv("Output/data.qual.grank.2022-09-07.csv")
 dat<-read.csv("Output/PrimarySubsetGlobal.csv")
 
 ##create function to make donut charts for taxa
@@ -65,21 +65,23 @@ donut.plot.grank <- function(data.plot, standard.plot) {
 ##for loop that creates a donut chart for each standard and saves it
 standards<-unique(data.qual.taxa$standard)
 for (j in 1:length(standards)) {
-  png(filename = paste0("Output/fig.", standards[j],".taxa.png"), width = 1200, height = 1200*.8, res=200)
+  png(filename = paste0("Output/fig.", standards[j],".taxa.png"), width = 1200, height = 1200*.7, res=200)
   donut.plot.taxa(data.plot = data.qual.taxa, standard.plot = standards[j])
   dev.off()
   
   if(standards[j]=="G_Rank") {next} ##move to next standard if there are no data for various G ranks
   
-  png(filename = paste0("Output/fig.", standards[j],".GRank.png"), width = 1200, height = 1200*1.5, res=150)
+  png(filename = paste0("Output/fig.", standards[j],".GRank.png"), width = 1200, height = 1200*1.2, res=150)
   donut.plot.grank(data.plot = data.qual.grank, standard.plot = standards[j])
   dev.off()
 }
 
 ##Histogram of year of last review 
 ##Break up by G/T rank 
-fig <- ggplot(data = dat, aes(Year)) +
+data.plot <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GH/TH", "GNA/TNA", "GNR/TNR", "GU/TU", "GX/TX")))
+fig <- ggplot(data = data.plot, aes(Year)) +
   geom_bar() +
+  geom_bar(data=subset(data.plot, Year>=as.numeric(format(Sys.Date(), "%Y"))-10), fill="seagreen4") +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust=1, color="black"), axis.text.y = element_text(color="black")) +
   scale_x_continuous(breaks = scales::breaks_pretty(n = 10)) +
@@ -96,6 +98,7 @@ dev.off()
 data.plot <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GH/TH", "GNA/TNA", "GNR/TNR", "GU/TU", "GX/TX")))
 fig <- ggplot(data = data.plot, aes(Year)) +
   geom_bar() +
+  geom_bar(data=subset(data.plot, Year>=as.numeric(format(Sys.Date(), "%Y"))-10), fill="seagreen4") +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust=1, color="black"), axis.text.y = element_text(color="black")) +
   scale_x_continuous(breaks = scales::breaks_pretty(n = 10), limits = c(min(dat$Year, na.rm=T), max(dat$Year, na.rm = T))) +

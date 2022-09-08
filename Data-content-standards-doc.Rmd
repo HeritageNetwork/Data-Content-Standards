@@ -1,8 +1,10 @@
 ---
-title: "Data Content Standards"
+title: "NatureServe's Benchmark Data Content Standards"
 author: "Max Tarjan"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
-output: word_document
+output:
+  word_document:
+      fig_caption: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -10,130 +12,111 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, echo=FALSE, warning=FALSE, include=FALSE}
-figure.num<-0
+figure.num<-1
 table.num<-0
 ```
 
 This report was produced using data content from the January 2022 snapshot of Central Biotics.
 
-A. All element global records should have: 
+# A. All element global records should have: 
 
-1. A global conservation status assessment (G-rank or T-rank other than GNR or TNR). 
-```{r, echo=FALSE}
+## 1. A global conservation status assessment (G-rank or T-rank other than GNR or TNR). 
+
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of plants and animals in the primary global dataset with a global conservation status (G-rank or T-rank other than GNR/TNR).")}
 knitr::include_graphics(path="Output/fig.G_Rank.taxa.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of plants and animals in the primary global dataset with a G rank or T rank.
 
-2. Documentation of the ranking methodology that was used.
-```{r, echo=FALSE}
+## 2. Documentation of the ranking methodology that was used.
+
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of elements with rank methodology recorded. Center values show the percent of elements with rank methodology recorded (True, shown in green). White values in the donut sections indicate the number of elements for which the standard is true or false.")}
 knitr::include_graphics(path="Output/fig.Rank_Method.taxa.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. % with methodology, % without methodology
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". % with methodology, % without methodology by G rank.")}
 knitr::include_graphics(path="Output/fig.Rank_Method.GRank.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. % with methodology, % without methodology by G rank
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". % of elements that use the rank calculator.")}
 knitr::include_graphics(path="Output/fig.Rank_Calculator.taxa.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. % of elements that use the rank calculator
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". % of elements that use the rank calculator by G rank.")}
 knitr::include_graphics(path="Output/fig.Rank_Calculator.GRank.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. % of elements that use the rank calculator by G rank
 
-4. Threat categories indicated, even if assessed and found to be “unknown” (GH/G1/G2/G3 and TH/T1/T2/T3 taxa only).  
+## 3. Threat categories indicated, even if assessed and found to be “unknown” (GH/G1/G2/G3 and TH/T1/T2/T3 taxa only).  
 Percent of at-risk elements with at least one threat category marked
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of at-risk elements with at least one threat category marked.")}
 knitr::include_graphics(path="Output/fig.Threat_Category.taxa.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of at-risk elements with at least one threat category marked
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of at-risk elements with at least one threat category marked by G rank.")}
 knitr::include_graphics(path="Output/fig.Threat_Category.GRank.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of at-risk elements with at least one threat category marked by G rank
 
-5. A rank reasons statement. 
-Percent of elements with rank reasons statement (i.e., text in field) 
+## 4. A rank reasons statement.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, , fig.cap= paste("Fig ", figure.num, ". Percent of element with a rank reasons statement.")}
 knitr::include_graphics(path="Output/fig.Rank_Reason.taxa.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of elements with rank reasons statement
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of elements with a rank reasons statement by G rank.")}
 knitr::include_graphics(path="Output/fig.Rank_Reason.GRank.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of elements with rank reasons statement by G rank
 
-6. Indication of the reason for the most recent rank change. 
+## 5. Indication of the reason for the most recent rank change. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of elements with rank change reasons indicated.")}
 knitr::include_graphics(path="Output/fig.Rank_Change_Reason.taxa.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of elements with rank change reasons indicated 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of elements with rank change reasons indicated by G rank.")}
 knitr::include_graphics(path="Output/fig.Rank_Change_Reason.GRank.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of elements with rank change reasons indicated by G rank
 
+## 6. Habitat categories indicated. 
 
-7. Habitat categories indicated. 
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of elements with at least on habitat cateogry selected.")}
 knitr::include_graphics(path="Output/fig.Habitat_Categories.taxa.png")
 figure.num<-figure.num+1
 ```
-**Fig `r figure.num`**. Percent of elements with at least one habitat category selected
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of elements with at least one habitat category selected by G rank.")}
 knitr::include_graphics(path="Output/fig.Habitat_Categories.GRank.png")
 figure.num<-figure.num+1
 ```
-**Fig `r figure.num`**. Percent of elements with at least one habitat category selected by G Rank
 
 
-8. A review of the global status rank at least every 10 years (except GX and TX). 
+## 7. A review of the global status rank at least every 10 years (except GX and TX). 
 
-Percent of elements with a rank that was reviewed in <= 10 years 
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of elements with a rank that was reviewed within the last ten years.")}
 knitr::include_graphics(path="Output/fig.G_Rank_Review_Date.taxa.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of elements with a rank that was reviewed in <= 10 years
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Percent of elements with a rank that was reviewed within the last 10 years by G rank.")}
 knitr::include_graphics(path="Output/fig.G_Rank_Review_Date.GRank.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Percent of elements with a rank that was reviewed in <= 10 years by G rank
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Histogram of year of last review.")}
 knitr::include_graphics(path="Output/fig.rankreviewdate.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Histogram of year of last review
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap= paste("Fig ", figure.num, ". Histogram of year of last review by G rank.")}
 knitr::include_graphics(path="Output/fig.rankreviewdate.grank.png")
 figure.num<-figure.num+1
 ```
-Fig `r figure.num`. Histogram of year of last review by G rank
