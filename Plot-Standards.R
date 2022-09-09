@@ -54,11 +54,40 @@ donut.plot.grank <- function(data.plot, standard.plot) {
     coord_polar(theta = "y", start = 0)+
     geom_text(aes(y = lab.ypos, label = format(n, big.mark=",")), color = "white")+
     geom_text(aes(y = 1, x = 1, label = paste0(round(label*100,0), "%")), color = c("black"), size = 6) +
-    facet_wrap(taxa ~ G_RANK) +
+    #facet_wrap(taxa ~ G_RANK) +
+    facet_grid(taxa ~ G_RANK) +
     scale_fill_manual(values = mycols, name=gsub(standard.plot, pattern="_", replace=" ")) +
     theme_void() +
     xlim(.9, 2.5) +
     theme(text = element_text(size = 12), strip.text = element_text(size=12), legend.position="bottom")
+  print(fig.temp)
+}
+
+##create function to make bar charts for granks
+bar.plot.grank <- function(data.plot, standard.plot) {
+  data.plot <- subset(data.plot, standard==standard.plot) %>%
+    dplyr::group_by(taxa, G_RANK) %>%
+    dplyr::arrange(desc(value)) %>%
+    dplyr::mutate(lab.ypos = cumsum(prop) - 0.5*prop) %>%
+    data.frame()
+  label <- subset(data.plot, value==T | value=="0-10 years", select=c(taxa, G_RANK, prop)) %>% dplyr::group_by(taxa, G_RANK) %>% data.frame()
+  colnames(label)<-c("taxa","G_RANK","label")
+  
+  data.plot <- dplyr::left_join(data.plot, label)
+  
+  mycols <- c("lightgrey", "seagreen4", "gold", "#0073C2FF")
+  fig.temp <- ggplot(data.plot, aes(x = G_RANK, y = prop, fill = value)) +
+    geom_bar(stat = "identity", color = "white") +
+    geom_text(aes(y = lab.ypos, label = format(n, big.mark=",")), color = "white")+
+    facet_grid(taxa~.) +
+    scale_fill_manual(values = mycols, name=gsub(standard.plot, pattern="_", replace=" ")) +
+    theme_classic() +
+    theme(text = element_text(size = 12), strip.text = element_text(size=12), legend.position="bottom") +
+    ylab("Proportion of taxa") +
+    xlab("G-Rank or T-Rank") +
+    theme(strip.background = element_blank()) +
+    theme(panel.spacing = unit(1.5, "lines")) +
+    scale_y_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=10))
   print(fig.temp)
 }
 
@@ -71,14 +100,21 @@ for (j in 1:length(standards)) {
   
   if(standards[j]=="G_Rank") {next} ##move to next standard if there are no data for various G ranks
   
-  png(filename = paste0("Output/fig.", standards[j],".GRank.png"), width = 1200, height = 1200*1.2, res=150)
+  png(filename = paste0("Output/fig.", standards[j],".GRank.png"), width = 1200, height = 1200/1.2, res=150)
   donut.plot.grank(data.plot = data.qual.grank, standard.plot = standards[j])
+  dev.off()
+  
+  ##check how many groups are in the plot
+  n.groups<-length(unique(subset(data.qual.grank, standard = standards[j])$G_RANK))
+  ##add bar plot for grank groups
+  png(filename = paste0("Output/fig.", standards[j],".GRank.barplot.png"), width = 1200*n.groups/4, height = 1200*1.5, res=150*2.5)
+  bar.plot.grank(data.plot = data.qual.grank, standard.plot = standards[j])
   dev.off()
 }
 
 ##Histogram of year of last review 
 ##Break up by G/T rank 
-data.plot <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GH/TH", "GNA/TNA", "GNR/TNR", "GU/TU", "GX/TX")))
+data.plot <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GNA/TNA", "GNR/TNR", "GX/TX")))
 fig <- ggplot(data = data.plot, aes(Year)) +
   geom_bar() +
   geom_bar(data=subset(data.plot, Year>=as.numeric(format(Sys.Date(), "%Y"))-10), fill="seagreen4") +
@@ -95,7 +131,7 @@ print(fig)
 dev.off()
 
 ##hist with facets
-data.plot <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GH/TH", "GNA/TNA", "GNR/TNR", "GU/TU", "GX/TX")))
+data.plot <- subset(dat, !is.na(taxa) & !(G_RANK %in% c("GNA/TNA", "GNR/TNR", "GX/TX")))
 fig <- ggplot(data = data.plot, aes(Year)) +
   geom_bar() +
   geom_bar(data=subset(data.plot, Year>=as.numeric(format(Sys.Date(), "%Y"))-10), fill="seagreen4") +
