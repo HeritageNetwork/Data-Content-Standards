@@ -8,6 +8,11 @@ data.qual.taxa<- read.csv("Output/data.qual.taxa.2022-09-07.csv")
 data.qual.grank <- read.csv("Output/data.qual.grank.2022-09-07.csv")
 dat<-read.csv("Output/PrimarySubsetGlobal.csv")
 
+##read in data for ecosystems
+dat.ecosystems <- read.csv("Output/PrimarySubsetGlobalEcosystems.csv")
+data.qual.ecosystems.taxa <- read.csv(paste0("Output/data.qual.ecosystems.taxa.",Sys.Date(),".csv"))
+data.qual.ecosystems.grank <- read.csv(paste0("Output/data.qual.ecosystems.grank.",Sys.Date(),".csv")) %>% mutate(G_RANK = factor(G_RANK, levels = c("Imperiled", "Vulnerable", "Apparently\nSecure", "GU")))
+
 ##create function to make donut charts for taxa
 donut.plot.taxa <- function(data.plot, standard.plot) {
   ##first determine whether plotting for all plants/animals or by G Rank
@@ -19,7 +24,7 @@ donut.plot.taxa <- function(data.plot, standard.plot) {
   label <- subset(data.plot, value==T | value=="0-10 years", select=c(taxa, prop)) %>% dplyr::group_by(taxa) %>% data.frame()
   colnames(label)<-c("taxa","label")
   
-  data.plot <- dplyr::left_join(data.plot, label)
+  data.plot <- dplyr::left_join(data.plot, label) %>% replace_na(list(label = 0))
   
   mycols <- c("lightgrey", "seagreen4", "gold", "#0073C2FF")
   fig.temp <- ggplot(data.plot, aes(x = 2, y = prop, fill = value)) +
@@ -73,7 +78,7 @@ bar.plot.grank <- function(data.plot, standard.plot) {
   label <- subset(data.plot, value==T | value=="0-10 years", select=c(taxa, G_RANK, prop)) %>% dplyr::group_by(taxa, G_RANK) %>% data.frame()
   colnames(label)<-c("taxa","G_RANK","label")
   
-  data.plot <- dplyr::left_join(data.plot, label)
+  data.plot <- dplyr::left_join(data.plot, label) %>% replace_na(list(label = 0)) #%>% mutate(G_RANK = str_replace(string = G_RANK, pattern = " ", replacement = "\n"))
   
   mycols <- c("lightgrey", "seagreen4", "gold", "#0073C2FF")
   fig.temp <- ggplot(data.plot, aes(x = G_RANK, y = prop, fill = value)) +
@@ -85,6 +90,7 @@ bar.plot.grank <- function(data.plot, standard.plot) {
     theme(text = element_text(size = 12), strip.text = element_text(size=12), legend.position="bottom") +
     ylab("Proportion of taxa") +
     xlab("G-Rank or T-Rank") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     theme(strip.background = element_blank()) +
     theme(panel.spacing = unit(1.5, "lines")) +
     scale_y_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=10))
@@ -146,5 +152,63 @@ fig
 ##print out this version for split up g ranks
 ##might want to adjust scale_x_date breaks and bins
 png(filename = "Output/fig.rankreviewdate.grank.png", width = 6.5, height = 9, units = "in", res=200)
+print(fig)
+dev.off()
+
+##CREATE PLOTS FOR ECOSYSTEMS DATA
+standards<-unique(data.qual.ecosystems.taxa$standard)
+for (j in 1:length(standards)) {
+  png(filename = paste0("Output/fig.", standards[j],".ecosystems.taxa.png"), width = 1200, height = 1200*.7, res=200)
+  donut.plot.taxa(data.plot = data.qual.ecosystems.taxa, standard.plot = standards[j])
+  dev.off()
+  
+  if(standards[j]=="G_Rank") {next} ##move to next standard if there are no data for various G ranks
+  
+  png(filename = paste0("Output/fig.", standards[j],".GRank.png"), width = 1200, height = 1200/1.2, res=150)
+  donut.plot.grank(data.plot = data.qual.ecosystems.grank, standard.plot = standards[j])
+  dev.off()
+  
+  ##check how many groups are in the plot
+  n.groups<-length(unique(subset(data.qual.ecosystems.grank, standard = standards[j])$G_RANK))
+  ##add bar plot for grank groups
+  png(filename = paste0("Output/fig.ecosystems.", standards[j],".GRank.barplot.png"), width = 1200*n.groups/4, height = 1200*1.5, res=150*2.5)
+  bar.plot.grank(data.plot = data.qual.ecosystems.grank, standard.plot = standards[j])
+  dev.off()
+}
+
+##HISTOGRAMS FOR ECOSYSTEMS
+##Histogram of year of last review 
+##Break up by G/T rank 
+data.plot <- dat.ecosystems %>% rename(taxa = CLASSIFICATION_LEVEL_NAME) %>% subset(!is.na(taxa) & !is.na(G_RANK))
+fig <- ggplot(data = data.plot, aes(Year)) +
+  geom_bar() +
+  geom_bar(data=subset(data.plot, Year>=as.numeric(format(Sys.Date(), "%Y"))-10), fill="seagreen4") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust=1, color="black"), axis.text.y = element_text(color="black")) +
+  scale_x_continuous(breaks = scales::breaks_pretty(n = 10)) +
+  xlab("G Rank Review Date") +
+  scale_y_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=10))
+fig
+
+##print out this version for all g ranks combined
+png(filename = "Output/fig.rankreviewdate.ecosystems.png", width = 6.5, height = 3, units = "in", res=200)
+print(fig)
+dev.off()
+
+##hist with facets
+fig <- ggplot(data = data.plot, aes(Year)) +
+  geom_bar() +
+  geom_bar(data=subset(data.plot, Year>=as.numeric(format(Sys.Date(), "%Y"))-10), fill="seagreen4") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust=1, color="black"), axis.text.y = element_text(color="black")) +
+  scale_x_continuous(breaks = scales::breaks_pretty(n = 10), limits = c(min(data.plot$Year, na.rm=T), max(data.plot$Year, na.rm = T))) +
+  xlab("G Rank Review Date") +
+  scale_y_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=5))
+fig <- fig + facet_grid(G_RANK~taxa, scales = "free") + theme(strip.background = element_rect(colour = "white", fill = "white"))
+fig
+
+##print out this version for split up g ranks
+##might want to adjust scale_x_date breaks and bins
+png(filename = "Output/fig.rankreviewdate.grank.ecosystems.png", width = 6.5, height = 9, units = "in", res=200)
 print(fig)
 dev.off()
