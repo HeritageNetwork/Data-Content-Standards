@@ -10,8 +10,8 @@ dat<-read.csv("Output/PrimarySubsetGlobal.csv")
 
 ##read in data for ecosystems
 dat.ecosystems <- read.csv("Output/PrimarySubsetGlobalEcosystems.csv")
-data.qual.ecosystems.taxa <- read.csv(paste0("Output/data.qual.ecosystems.taxa.",Sys.Date(),".csv"))
-data.qual.ecosystems.grank <- read.csv(paste0("Output/data.qual.ecosystems.grank.",Sys.Date(),".csv")) %>% mutate(G_RANK = factor(G_RANK, levels = c("Imperiled", "Vulnerable", "Apparently\nSecure", "GU")))
+data.qual.ecosystems.taxa <- read.csv(paste0("Output/data.qual.ecosystems.taxa.",Sys.Date(),".csv")) %>% mutate(taxa = factor(taxa, levels = c("Association", "Alliance", "Group")))
+data.qual.ecosystems.grank <- read.csv(paste0("Output/data.qual.ecosystems.grank.",Sys.Date(),".csv")) %>% mutate(G_RANK = factor(G_RANK, levels = c("Imperiled", "Vulnerable", "Apparently\nSecure", "GU"))) %>% mutate(taxa = factor(taxa, levels = c("Association", "Alliance", "Group")))
 
 ##create function to make donut charts for taxa
 donut.plot.taxa <- function(data.plot, standard.plot) {
@@ -89,7 +89,7 @@ bar.plot.grank <- function(data.plot, standard.plot) {
     theme_classic() +
     theme(text = element_text(size = 12), strip.text = element_text(size=12), legend.position="bottom") +
     ylab("Proportion of taxa") +
-    xlab("G-Rank or T-Rank") +
+    xlab("G Rank") +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     theme(strip.background = element_blank()) +
     theme(panel.spacing = unit(1.5, "lines")) +

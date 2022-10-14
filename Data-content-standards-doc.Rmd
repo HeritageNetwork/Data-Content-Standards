@@ -29,14 +29,14 @@ knitr::include_graphics(path="Output/fig.G_Rank.taxa.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of ecosystems in the primary global dataset with a global conservation status (G-rank or T-rank other than GNR/TNR).")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of ecosystems in the primary global dataset with a global conservation status (G-rank other than GNR).")}
 knitr::include_graphics(path="Output/fig.G_Rank.ecosystems.taxa.png")
 figure.num<-figure.num+1
 ```
 
 ## 2. Documentation of the ranking methodology.
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of elements with rank methodology recorded. Center values show the percent of elements with rank methodology recorded (True, shown in green). White values indicate the number of elements for which the standard is true or false.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of species elements with rank methodology recorded. Center values show the percent of elements with rank methodology recorded (True, shown in green). White values indicate the number of elements for which the standard is true or false.")}
 knitr::include_graphics(path="Output/fig.Rank_Method.taxa.png")
 figure.num<-figure.num+1
 ```
@@ -46,17 +46,17 @@ knitr::include_graphics(path="Output/fig.Rank_Method.ecosystems.taxa.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of elements with rank methodology recorded by G-rank/T-rank. White values indicate the number of elements for which the standard is true (i.e. rank methodology is recorded, shown in green) or false (i.e., rank methodology is not recorded, shown in grey).")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of species elements with rank methodology recorded by G-rank/T-rank. White values indicate the number of elements for which the standard is true (i.e. rank methodology is recorded, shown in green) or false (i.e., rank methodology is not recorded, shown in grey).")}
 knitr::include_graphics(path="Output/fig.Rank_Method.GRank.barplot.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of ecosystems with rank methodology recorded by G-rank/T-rank. White values indicate the number of ecosystems for which the standard is true (i.e. rank methodology is recorded, shown in green) or false (i.e., rank methodology is not recorded, shown in grey).")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of ecosystems with rank methodology recorded by G-rank. White values indicate the number of ecosystems for which the standard is true (i.e. rank methodology is recorded, shown in green) or false (i.e., rank methodology is not recorded, shown in grey).")}
 knitr::include_graphics(path="Output/fig.ecosystems.Rank_Method.GRank.barplot.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of elements that use the rank calculator. Center values show the percent of elements that were ranked using the rank calculator (True, shown in green). White values indicate the number of elements for which the standard is true or false.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of species elements that use the rank calculator. Center values show the percent of elements that were ranked using the rank calculator (True, shown in green). White values indicate the number of elements for which the standard is true or false.")}
 knitr::include_graphics(path="Output/fig.Rank_Calculator.taxa.png")
 figure.num<-figure.num+1
 ```
@@ -66,7 +66,7 @@ knitr::include_graphics(path="Output/fig.Rank_Calculator.ecosystems.taxa.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of elements that were ranked using the rank calculator by G-rank. White values indicate the number of elements for which the standard is true (i.e. the rank calculator was used, shown in green) or false (i.e., the rank calculator was not used, shown in grey).")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of species elements that were ranked using the rank calculator by G-rank. White values indicate the number of elements for which the standard is true (i.e. the rank calculator was used, shown in green) or false (i.e., the rank calculator was not used, shown in grey).")}
 knitr::include_graphics(path="Output/fig.Rank_Calculator.GRank.barplot.png")
 figure.num<-figure.num+1
 ```
@@ -78,19 +78,19 @@ figure.num<-figure.num+1
 
 ## 3. Threat categories indicated for at-risk elements, even if “unknown”.
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of at-risk elements with at least one threat category marked. Center values show the percent of at-risk elements (elements that are ranked GH/G1/G2/G3 or TH/T1/T2/T3) that have at least one threat category marked (True, shown in green). White values indicate the number of elements for which the standard is true or false.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of at-risk species elements with at least one threat category marked. Center values show the percent of at-risk elements (elements that are ranked GH/G1/G2/G3 or TH/T1/T2/T3) that have at least one threat category marked (True, shown in green). White values indicate the number of elements for which the standard is true or false.")}
 knitr::include_graphics(path="Output/fig.Threat_Category.taxa.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of at-risk elements with at least one threat category marked by G-rank. White values indicate the number of elements for which the standard is true (i.e. at least one threat category is marked, shown in green) or false (i.e., no threat categories are marked, shown in grey).")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of at-risk species elements with at least one threat category marked by G-rank. White values indicate the number of elements for which the standard is true (i.e. at least one threat category is marked, shown in green) or false (i.e., no threat categories are marked, shown in grey).")}
 knitr::include_graphics(path="Output/fig.Threat_Category.GRank.png")
 figure.num<-figure.num+1
 ```
 
 ## 4. A rank reasons statement.
 
-```{r, echo=FALSE, , fig.cap= paste("Figure ", figure.num, ". Percent of elements with a rank reasons statement.")}
+```{r, echo=FALSE, , fig.cap= paste("Figure ", figure.num, ". Percent of species elements with a rank reasons statement.")}
 knitr::include_graphics(path="Output/fig.Rank_Reason.taxa.png")
 figure.num<-figure.num+1
 ```
@@ -100,7 +100,7 @@ knitr::include_graphics(path="Output/fig.Rank_Reason.ecosystems.taxa.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of elements of each G-rank with a rank reasons statement. White values indicate the number of elements for which the standard is true (i.e. a rank reasons statement is given, shown in green) or false (i.e., no rank reasons statement is given, shown in grey).")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of species elements of each G-rank with a rank reasons statement. White values indicate the number of elements for which the standard is true (i.e. a rank reasons statement is given, shown in green) or false (i.e., no rank reasons statement is given, shown in grey).")}
 knitr::include_graphics(path="Output/fig.Rank_Reason.GRank.barplot.png")
 figure.num<-figure.num+1
 ```
@@ -112,24 +112,24 @@ figure.num<-figure.num+1
 
 ## 5. Indication of the reason for most recent rank change. 
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of elements with the reasons for rank change indicated. Only elements that have had a rank change are included. The date of the rank change must be the same as the date of the rank reasons statement for this standard to be evaluated as true.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of species elements with the reasons for rank change indicated. Only elements that have had a rank change are included. The date of the rank change must be the same as the date of the rank reasons statement for this standard to be evaluated as true.")}
 knitr::include_graphics(path="Output/fig.Rank_Change_Reason.taxa.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of elements of each G-rank with rank change reasons indicated.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of species elements of each G-rank with rank change reasons indicated.")}
 knitr::include_graphics(path="Output/fig.Rank_Change_Reason.GRank.barplot.png")
 figure.num<-figure.num+1
 ```
 
 ## 6. Habitat categories indicated. 
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of elements with at least one habitat cateogry selected.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of species elements with at least one habitat cateogry selected.")}
 knitr::include_graphics(path="Output/fig.Habitat_Categories.taxa.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of elements with at least one habitat category selected by G-rank.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of species elements with at least one habitat category selected by G-rank.")}
 knitr::include_graphics(path="Output/fig.Habitat_Categories.GRank.barplot.png")
 figure.num<-figure.num+1
 ```
@@ -137,17 +137,17 @@ figure.num<-figure.num+1
 
 ## 7. A review of the global status rank at least every 10 years. 
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of elements with a global rank that was reviewed within the last ten years. Elements with conservation status ranks of GNA/TNA, GNR/TNR, and GX/TX are excluded.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of species elements with a global rank that was reviewed within the last ten years. Elements with conservation status ranks of GNA/TNA, GNR/TNR, and GX/TX are excluded.")}
 knitr::include_graphics(path="Output/fig.G_Rank_Review_Date.taxa.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of ecosystems with a global rank that was reviewed within the last ten years. Ecosystems with conservation status ranks of GNA/TNA and GNR/TNR are excluded.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Percent of ecosystems with a global rank that was reviewed within the last ten years. Ecosystems with conservation status ranks of GNR/TNR are excluded.")}
 knitr::include_graphics(path="Output/fig.G_Rank_Review_Date.ecosystems.taxa.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of elements with a global rank that was reviewed within the last 10 years by G-rank. Elements with conservation status ranks of GNA/TNA, GNR/TNR, and GX/TX are excluded.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of species elements with a global rank that was reviewed within the last 10 years by G-rank. Elements with conservation status ranks of GNA/TNA, GNR/TNR, and GX/TX are excluded.")}
 knitr::include_graphics(path="Output/fig.G_Rank_Review_Date.GRank.barplot.png")
 figure.num<-figure.num+1
 ```
@@ -157,7 +157,7 @@ knitr::include_graphics(path="Output/fig.ecosystems.G_Rank_Review_Date.GRank.bar
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Histogram of the year of last global rank review. Elements with a global rank review within the last ten years appear in green. Elements with conservation status ranks of GNA/TNA, GNR/TNR, and GX/TX are excluded.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Histogram of the year of last global rank review. Species elements with a global rank review within the last ten years appear in green. Elements with conservation status ranks of GNA/TNA, GNR/TNR, and GX/TX are excluded.")}
 knitr::include_graphics(path="Output/fig.rankreviewdate.png")
 figure.num<-figure.num+1
 ```
@@ -167,7 +167,7 @@ knitr::include_graphics(path="Output/fig.rankreviewdate.ecosystems.png")
 figure.num<-figure.num+1
 ```
 
-```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Histogram of the year of last global rank review by G-rank. Elements with a global rank review within the last ten years appear in green. Elements with conservation status ranks of GNA/TNA, and GX/TX are excluded.")}
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Histogram of the year of last global rank review by G-rank. Species elements with a global rank review within the last ten years appear in green. Elements with conservation status ranks of GNA/TNA, and GX/TX are excluded.")}
 knitr::include_graphics(path="Output/fig.rankreviewdate.grank.png")
 figure.num<-figure.num+1
 ```
