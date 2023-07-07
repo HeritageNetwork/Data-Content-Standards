@@ -16,9 +16,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, echo=FALSE, warning=FALSE, include=FALSE}
 figure.num<-0
 table.num<-0
+#dat <- read.csv("data/")
 ```
 
-This report was produced using data content from the January 2022 snapshot of Central Biotics.
+This report was produced using data content from Central Biotics on `r format(Sys.Date(), '%B %d, %Y')`.
 
 # A. All element global records should have: 
 
