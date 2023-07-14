@@ -12,7 +12,9 @@ library(tidyverse)
 ##open connection to database; Jan 2022 snapshot
 #con<-odbcConnect("BIOSNAPDB07", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
 ##open connection to database; production biotics
-con<-odbcConnect("centralbiotics", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
+#con<-odbcConnect("centralbiotics", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
+##open connection to database; Jan 2023 snapshot
+con<-odbcConnect("BIOSNAPDB08", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
 #sqlTables(con) ##show tables in the database
 
 
