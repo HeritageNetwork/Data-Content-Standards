@@ -11,8 +11,8 @@ library(tidyverse)
 ##NEED TO FIRST CONNECT TO VPN
 ##open connection to database; Jan 2022 snapshot
 #con<-odbcConnect("BIOSNAPDB07", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
-##open connection to database; Jan 2023 snapshot
-con<-odbcConnect("BIOSNAPDB08", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
+##open connection to database; Jan 2024 snapshot
+con<-odbcConnect("BIOSNAPDB01", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
 #sqlTables(con) ##show tables in the database
 
 #/* BDCS ECOSYSTEM Global Elements 'Primary Subset'
@@ -64,7 +64,7 @@ eco.global$G_Rank <- ifelse(eco.global$ROUNDED_G_RANK =="GNR", F, T)
 eco.global$Rank_Method <- ifelse(is.na(eco.global$D_RANK_METHOD_USED_ID), F, T)
 eco.global$Rank_Calculator <- ifelse(!str_detect(string = eco.global$RANK_METHOD_USED_DESC, pattern = "Rank calculation") | is.na(eco.global$RANK_METHOD_USED_DESC), F, T)
 eco.global$Rank_Reason <- ifelse(is.na(eco.global$G_RANK_REASONS), F, T)
-eco.global$G_Rank_Review_Date <- ifelse(eco.global$G_RANK_REVIEW_DATE > Sys.Date()-365*10, T, F)
+eco.global$G_Rank_Review_Date <- ifelse(eco.global$G_RANK_REVIEW_DATE > Sys.Date()-365*10, "0-10 years", ">10 years")
 eco.global$Year<- lubridate::year(eco.global$G_RANK_REVIEW_DATE) %>% as.numeric()
 
 write.csv(eco.global, "Output/PrimarySubsetGlobalEcosystems.csv", row.names=F)

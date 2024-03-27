@@ -3,17 +3,24 @@
 library(tidyverse)
 
 ## Load data for each year
-data.qual.taxa <- read.csv("Output/data.qual.taxa.2023-07-14.csv") %>% mutate(Year = 2023) %>%
+data.qual.taxa <- read.csv("Output/data.qual.taxa.2024-03-26.csv") %>% mutate(Year = 2024) %>%
+  bind_rows(read.csv("Output-January2023/data.qual.taxa.2023-07-14.csv") %>% mutate(Year = 2023)) %>%
   bind_rows(read.csv("Output-January2022/data.qual.taxa.2022-09-07.csv") %>% mutate(Year = 2022))
-data.qual.grank <- read.csv("Output/data.qual.grank.2023-07-14.csv") %>% mutate(Year = 2023) %>%
+
+data.qual.grank <- read.csv("Output/data.qual.grank.2024-03-26.csv") %>% mutate(Year = 2024) %>%
+  bind_rows(read.csv("Output-January2023/data.qual.grank.2023-07-14.csv") %>% mutate(Year = 2023)) %>%
   bind_rows(read.csv("Output-January2022/data.qual.grank.2022-09-07.csv") %>% mutate(Year = 2022))
-dat<-read.csv("Output/PrimarySubsetGlobal.csv") %>% mutate(Year = 2023) %>%
+
+dat<-read.csv("Output/PrimarySubsetGlobal.csv") %>% mutate(Year = 2024) %>%
+  bind_rows(read.csv("Output-January2023/PrimarySubsetGlobal.csv") %>% mutate(Year = 2023)) %>%
   bind_rows(read.csv("Output-January2022/PrimarySubsetGlobal-20221011.csv") %>% mutate(Year = 2022))
 
 ##create function to make donut charts for taxa
 bar.plot.taxa <- function(data.plot, standard.plot) {
   ##first determine whether plotting for all plants/animals or by G Rank
-  data.plot <- subset(data.plot, standard==standard.plot) %>%
+  data.plot <- subset(data.plot, standard==standard.plot) 
+  if (standard.plot == "G_Rank_Review_Date") {data.plot <- data.plot %>% mutate(value = factor(value, levels = c(">10 years", "0-10 years")))}
+  data.plot <- data.plot %>%
     dplyr::group_by(taxa, Year) %>%
     dplyr::arrange(desc(value)) %>%
     dplyr::mutate(lab.ypos = cumsum(prop) - 0.5*prop) %>%
@@ -40,9 +47,10 @@ bar.plot.taxa <- function(data.plot, standard.plot) {
   print(fig.temp)
 }
 
+n.groups <- max(data.qual.taxa$Year, na.rm = T)-min(data.qual.taxa$Year, na.rm = T)+1 # number of columns
 standards<-unique(data.qual.taxa$standard)
 for (j in 1:length(standards)) {
-  png(filename = paste0("Output/fig.", standards[j],".taxa.multiyear.png"), width = 1200*.6, height = 1200, res=200)
+  png(filename = paste0("Output/fig.", standards[j],".taxa.multiyear.png"), width = 1200*n.groups/4, height = 1200, res=200)
   bar.plot.taxa(data.plot = data.qual.taxa, standard.plot = standards[j])
   dev.off()
 }
