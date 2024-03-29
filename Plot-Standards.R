@@ -84,6 +84,9 @@ bar.plot.grank <- function(data.plot, standard.plot) {
   
   data.plot <- dplyr::left_join(data.plot, label) %>% replace_na(list(label = 0)) #%>% mutate(G_RANK = str_replace(string = G_RANK, pattern = " ", replacement = "\n"))
   
+  ## Get number of Grank groups for legend placement
+  n.groups<-length(unique(data.plot$G_RANK))
+  
   mycols <- c("lightgrey", "seagreen4", "gold", "#0073C2FF")
   fig.temp <- ggplot(data.plot, aes(x = G_RANK, y = prop, fill = value)) +
     geom_bar(stat = "identity", color = "white") +
@@ -193,7 +196,7 @@ for (j in 1:length(standards)) {
   ##check how many groups are in the plot
   n.groups<-length(unique(subset(data.qual.ecosystems.grank, standard == standards[j])$G_RANK))
   ##add bar plot for grank groups
-  png(filename = paste0("Output/fig.ecosystems.", standards[j],".GRank.barplot.png"), width = 1200*n.groups/4, height = 1200*1.8, res=150*2.5)
+  png(filename = paste0("Output/fig.ecosystems.", standards[j],".GRank.barplot.png"), width = 1200*n.groups/4, height = 1200*1.9, res=150*2.5)
   bar.plot.grank(data.plot = data.qual.ecosystems.grank, standard.plot = standards[j])
   dev.off()
 }

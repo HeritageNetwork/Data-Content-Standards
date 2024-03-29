@@ -42,7 +42,7 @@ bar.plot.taxa <- function(data.plot, standard.plot) {
     ylab("Proportion of elements") +
     theme(text = element_text(size = 12), strip.text = element_text(size=12), legend.position="right", strip.background = element_blank()) +
     theme(panel.spacing = unit(1.5, "lines")) +
-    scale_y_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=10), limits = c(0,1.2)) +
+    scale_y_continuous(breaks = seq(0,1, 0.1), limits = c(0,1.2), expand=c(0, 0)) +
     scale_x_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=max(data.plot$Year)-min(data.plot$Year)+1), limits = c(min(data.plot$Year)-0.5, max(data.plot$Year)+0.5))
   print(fig.temp)
 }
