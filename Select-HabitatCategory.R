@@ -5,8 +5,8 @@
 
 ##open connection to database; Jan 2022 snapshot
 #con<-odbcConnect("BIOSNAPDB07", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
-##open connection to database; Jan 2023 snapshot
-con<-odbcConnect("BIOSNAPDB08", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
+##open connection to database; Jan 2024 snapshot
+con<-odbcConnect("BIOSNAPDB01", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
 
 ##put a loop around query and use rbind to get more than 999 records
 id.vector<-egt.global$ELEMENT_GLOBAL_ID

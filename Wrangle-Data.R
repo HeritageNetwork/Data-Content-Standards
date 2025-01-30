@@ -3,8 +3,16 @@
 
 library(tidyverse)
 
-egt.global<-read.csv("Output/PrimarySubsetGlobal.csv")
-dat <- egt.global
+egt.global<-read.csv("Output/PrimarySubsetGlobal.csv") %>% filter(native)
+
+## add info on models
+library(SHMDB)
+### SHM database
+con <- shmdb_connect()
+shms <- dbGetQuery(con, "SELECT * FROM project_outputs")
+shms <- shms %>% filter(!is.na(model_name) & !(model_status %in% c("N/A", "model_defunct", "archived", "model_in_development"))) %>% select(element_global_id, scientific_name, common_name, model_status) %>% unique()
+
+dat <- egt.global %>% mutate(Habitat_Model = ifelse(ELEMENT_GLOBAL_ID %in% shms$element_global_id, T, F))
 
 ##define taxa
 dat$taxa<-NA
@@ -81,6 +89,14 @@ data.qual.taxa <- subset(dat, !is.na(taxa)) %>%
   summarise(n=n()) %>% 
   data.frame() %>% 
   rbind(data.qual.taxa)
+if (any(names(dat) %in% "Habitat_Model")) {
+  data.qual.taxa <- subset(dat, !is.na(taxa) & G_RANK %in% c("G1/T1", "G2/T2")) %>% 
+    gather(key = "standard", value = "value", Habitat_Model) %>% 
+    group_by(taxa, standard, value) %>% 
+    summarise(n=n()) %>% 
+    data.frame() %>% 
+    rbind(data.qual.taxa)
+}
 
 ##convert counts into proportions of cases that are T/F for each standard and plants vs animals
 data.qual.taxa<-dplyr::arrange(.data = data.qual.taxa, standard, taxa, value)
@@ -95,6 +111,11 @@ data.qual.grank <- subset(dat, !is.na(taxa)& !(G_RANK %in% c("GNR/TNR", "GNA/TNA
 data.qual.grank <- subset(dat, !is.na(taxa)& !(G_RANK %in% c("GNR/TNR", "GNA/TNA")) & !is.na(Rank_Change_Reason)) %>% gather(key = "standard", value = "value", Rank_Change_Reason) %>% group_by(taxa, G_RANK, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.grank)
 ##only evaluate G1-3 and H for threat category
 data.qual.grank <- subset(dat, !is.na(taxa) & G_RANK %in% c("G1/T1", "G2/T2", "G3/T3", "GH/TH")) %>% gather(key = "standard", value = "value", Threat_Category) %>% group_by(taxa, G_RANK, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.grank)
+
+if (any(names(dat) %in% "Habitat_Model")) {
+  ##only evaluate G1 G2 for habitat models
+  data.qual.grank <- subset(dat, !is.na(taxa) & G_RANK %in% c("G1/T1", "G2/T2")) %>% gather(key = "standard", value = "value", Habitat_Model) %>% group_by(taxa, G_RANK, standard, value) %>% summarise(n=n()) %>% data.frame() %>% rbind(data.qual.grank)
+}
 
 ##convert counts into proportions of cases that are T/F for each standards and plants vs animals
 data.qual.grank<-dplyr::arrange(.data = data.qual.grank, standard, taxa, G_RANK, value)

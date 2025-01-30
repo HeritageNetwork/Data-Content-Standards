@@ -4,14 +4,14 @@
 
 #data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
 #dat.rank<-read.csv("Output/data.rank.csv")
-data.qual.taxa<- read.csv("Output/data.qual.taxa.2024-03-26.csv")
-data.qual.grank <- read.csv("Output/data.qual.grank.2024-03-26.csv")
+data.qual.taxa<- read.csv("Output/data.qual.taxa.2025-01-24.csv")
+data.qual.grank <- read.csv("Output/data.qual.grank.2025-01-24.csv")
 dat<-read.csv("Output/PrimarySubsetGlobal.csv")
 
 ##read in data for ecosystems
 dat.ecosystems <- read.csv("Output/PrimarySubsetGlobalEcosystems.csv")
-data.qual.ecosystems.taxa <- read.csv("Output/data.qual.ecosystems.taxa.2024-03-27.csv") %>% mutate(taxa = factor(taxa, levels = c("Association", "Alliance", "Group")))
-data.qual.ecosystems.grank <- read.csv("Output/data.qual.ecosystems.grank.2024-03-27.csv") %>% mutate(G_RANK = factor(G_RANK, levels = c("Imperiled", "Vulnerable", "Apparently\nSecure", "GU"))) %>% mutate(taxa = factor(taxa, levels = c("Association", "Alliance", "Group")))
+data.qual.ecosystems.taxa <- read.csv("Output/data.qual.ecosystems.taxa.2025-01-22.csv") %>% mutate(taxa = factor(taxa, levels = c("Association", "Alliance", "Group")))
+data.qual.ecosystems.grank <- read.csv("Output/data.qual.ecosystems.grank.2025-01-22.csv") %>% mutate(G_RANK = factor(G_RANK, levels = c("Imperiled", "Vulnerable", "Apparently\nSecure", "GU"))) %>% mutate(taxa = factor(taxa, levels = c("Association", "Alliance", "Group")))
 
 ##create function to make donut charts for taxa
 donut.plot.taxa <- function(data.plot, standard.plot) {
@@ -95,7 +95,7 @@ bar.plot.grank <- function(data.plot, standard.plot) {
     scale_fill_manual(values = mycols, name=gsub(standard.plot, pattern="_", replace=" ")) +
     theme_classic() +
     theme(text = element_text(size = 12), strip.text = element_text(size=12), legend.position="bottom") +
-    ylab("Proportion of taxa") +
+    ylab("Proportion") +
     xlab("G Rank") +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     theme(strip.background = element_blank()) +
@@ -237,3 +237,41 @@ fig
 png(filename = "Output/fig.rankreviewdate.grank.ecosystems.png", width = 6.5, height = 9, units = "in", res=200)
 print(fig)
 dev.off()
+
+
+## Plot g rank review date by informal taxonomy
+if ("taxa2" %in% colnames(data.qual.taxa)) {
+  standard.plot<-standards[2]
+  data.plot <- data.qual.taxa %>% 
+    filter(standard==standard.plot) %>%
+    filter(!is.na(taxa2)) %>%
+    mutate(value = factor(value, levels = c(">10 years", "0-10 years")))
+  data.plot <-  data.plot %>%
+    dplyr::group_by(taxa2, taxa) %>%
+    dplyr::arrange(desc(value)) %>%
+    dplyr::mutate(lab.ypos = cumsum(prop) - 0.5*prop) %>%
+    data.frame()
+  label <- subset(data.plot, value==T | value=="0-10 years", select=c(taxa2, taxa, prop)) %>% dplyr::group_by(taxa2, taxa) %>% data.frame()
+  colnames(label)<-c("taxa2", "taxa","label")
+  
+  data.plot <- dplyr::left_join(data.plot, label) %>% replace_na(list(label = 0))
+  
+  mycols <- c("lightgrey", "seagreen4", "gold", "#0073C2FF")
+  fig.temp <- ggplot(data.plot, aes(x = taxa, y = prop, fill = value)) +
+    geom_bar(stat = "identity", color = "white") +
+    #geom_text(aes(y = lab.ypos, label = format(n, big.mark=",")), color = "white")+
+    #facet_grid(taxa2~., scales = "free") +
+    scale_fill_manual(values = mycols, name=gsub(standard.plot, pattern="_", replace=" ")) +
+    theme_classic() +
+    #theme(text = element_text(size = 12), strip.text = element_text(size=12), legend.position="bottom") +
+    ylab("Proportion of taxa") +
+    xlab("Taxonomic Group") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    theme(strip.background = element_blank()) +
+    scale_y_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=10))
+  print(fig.temp)
+  
+  png(filename = "Output/fig.rankreviewdate.informal.taxa.png", width = 12, height = 5, units = "in", res=200)
+  print(fig.temp)
+  dev.off()
+}

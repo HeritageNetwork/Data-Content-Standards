@@ -19,8 +19,9 @@ library(tidyverse)
 con<-odbcConnect("BIOSNAPDB01", uid="biotics_report", pwd=rstudioapi::askForPassword("Password"))
 #sqlTables(con) ##show tables in the database
 
+# add speciesGlobal$informalTaxonomy$level3
 
-qry <- "SELECT DISTINCT egt.element_global_id, gname.scientific_name, egt.g_primary_common_name, nc.name_category_desc, egt.rounded_g_rank, egr.d_rank_method_used_id, rmu.rank_method_used_desc, rmu.external_desc, egr.g_rank_reasons, EGT.G_RANK_REVIEW_DATE
+qry <- "SELECT DISTINCT egt.element_global_id, gname.scientific_name, egt.g_primary_common_name, nc.name_category_desc, egt.rounded_g_rank, egr.d_rank_method_used_id, rmu.rank_method_used_desc, rmu.external_desc, egr.g_rank_reasons, EGT.G_RANK_REVIEW_DATE, informal_tax(egt.element_global_id)
 FROM  element_global egt
 LEFT JOIN scientific_name gname
   ON egt.gname_id = gname.scientific_name_id
