@@ -21,26 +21,24 @@ con<-odbcConnect("BIOSNAPDB01", uid="biotics_report", pwd=rstudioapi::askForPass
 
 # add speciesGlobal$informalTaxonomy$level3
 
-qry <- "SELECT DISTINCT egt.element_global_id, gname.scientific_name, egt.g_primary_common_name, nc.name_category_desc, egt.rounded_g_rank, egr.d_rank_method_used_id, rmu.rank_method_used_desc, rmu.external_desc, egr.g_rank_reasons, EGT.G_RANK_REVIEW_DATE, informal_tax(egt.element_global_id)
+qry <- "SELECT DISTINCT egt.element_global_id, gname.scientific_name, egt.g_primary_common_name, nc.name_category_desc
+  , egt.rounded_g_rank, egr.d_rank_method_used_id, rmu.rank_method_used_desc, rmu.external_desc, egr.g_rank_reasons, EGT.G_RANK_REVIEW_DATE, informal_tax(egt.element_global_id)
 FROM  element_global egt
-LEFT JOIN scientific_name gname
-  ON egt.gname_id = gname.scientific_name_id
-LEFT JOIN d_name_category nc
-  ON gname.d_name_category_id = nc.d_name_category_id
-LEFT JOIN element_global_rank egr
-    ON egt.element_global_id = egr.element_global_id
-LEFT JOIN d_rank_method_used rmu
-    ON egr.d_rank_method_used_id = rmu.d_rank_method_used_id
+LEFT JOIN scientific_name gname ON egt.gname_id = gname.scientific_name_id
+LEFT JOIN d_name_category nc ON gname.d_name_category_id = nc.d_name_category_id
+LEFT JOIN element_global_rank egr ON egt.element_global_id = egr.element_global_id
+LEFT JOIN d_rank_method_used rmu ON egr.d_rank_method_used_id = rmu.d_rank_method_used_id
 WHERE
 /* criteria that applies to all records - active, regular and confident in US or Canada */ 
   egt.inactive_ind = 'N' 
+  and egt.g_rank != 'GNA' 
   and egt.element_global_id in ( 
     (SELECT ent.element_global_id 
       FROM element_national ent 
       where ent.nation_id in (38,225) 
        and ent.element_national_id in  
        (select tnd.element_national_id from taxon_natl_dist tnd 
-        where tnd.d_regularity_id = 1 /* Regularly occurring */ and tnd.d_dist_confidence_id = 1 /* confident */))) 
+        where tnd.d_origin_id in (1,3) /*native or unknown */ and tnd.d_regularity_id = 1 /* Regularly occurring */ and tnd.d_dist_confidence_id = 1 /* confident */))) 
   and  
   ( 
  -- animal criteria - full species, standard classification, standard taxonomic groups with complete distribution, exclude pops and hybrids 
@@ -54,7 +52,7 @@ WHERE
      and sna.scientific_name not like '% pop. %' 
      and tga.g_hybrid_ind = 'N' 
      and standard_taxonomic_groups(egta.element_global_id) is not null 
-     and standard_taxonomic_groups(egta.element_global_id) not in ('Notodontid Moths (G1G3)','Giant Silkworm and Royal Moths (G1G3)','Tiger Moths (G1G3)') )  
+     and standard_taxonomic_groups(egta.element_global_id) not in ('Giant Silkworm and Royal Moths (G1G3)') )  
  -- plant criteria - vascular plants, standard classification, exclude pops and hybrids 
   or  
   egt.element_global_id in  

@@ -4,8 +4,8 @@
 
 #data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
 #dat.rank<-read.csv("Output/data.rank.csv")
-data.qual.taxa<- read.csv("Output/data.qual.taxa.2025-01-24.csv")
-data.qual.grank <- read.csv("Output/data.qual.grank.2025-01-24.csv")
+data.qual.taxa<- read.csv("Output/data.qual.taxa.2025-01-30.csv")
+data.qual.grank <- read.csv("Output/data.qual.grank.2025-01-30.csv")
 dat<-read.csv("Output/PrimarySubsetGlobal.csv")
 
 ##read in data for ecosystems
