@@ -1,6 +1,5 @@
 ##step 6
 ##Plots of data content standards
-##doesn't work for non spatial snapshot yet
 
 #data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
 #dat.rank<-read.csv("Output/data.rank.csv")
@@ -72,7 +71,7 @@ donut.plot.grank <- function(data.plot, standard.plot) {
 
 ##create function to make bar charts for granks
 bar.plot.grank <- function(data.plot, standard.plot) {
-  data.plot <- subset(data.plot, standard==standard.plot) 
+  data.plot <- subset(data.plot, standard==standard.plot)
   if (standard.plot == "G_Rank_Review_Date") {data.plot <- data.plot %>% mutate(value = factor(value, levels = c(">10 years", "0-10 years")))}
   data.plot <- data.plot %>%
     dplyr::group_by(taxa, G_RANK) %>%
@@ -111,7 +110,7 @@ for (j in 1:length(standards)) {
   donut.plot.taxa(data.plot = data.qual.taxa, standard.plot = standards[j])
   dev.off()
   
-  if(standards[j]=="G_Rank") {next} ##move to next standard if there are no data for various G ranks
+  if(standards[j] %in% c("G_Rank", "EOs_for_all_Subnations", "Elements_with_EOs")) {next} ##move to next standard if there are no data for various G ranks
   
   png(filename = paste0("Output/fig.", standards[j],".GRank.png"), width = 1200, height = 1200/1.2, res=150)
   donut.plot.grank(data.plot = data.qual.grank, standard.plot = standards[j])

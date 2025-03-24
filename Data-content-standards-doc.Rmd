@@ -11,6 +11,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
 ```
 
 ```{r, echo=FALSE, warning=FALSE, include=FALSE}
@@ -173,3 +174,59 @@ figure.num<-figure.num+1
 knitr::include_graphics(path="Output/fig.rankreviewdate.grank.png")
 figure.num<-figure.num+1
 ```
+
+## 8. Imperiled species (G1, G2, GH, Endangered, and Threatened) should have Element Occurrences throughout the range and with complete metadata
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Total number of EOs for imperiled, endangered, and threatened species per taxonomic group. EOs must be current (last observation date within the last 40 years).")}
+knitr::include_graphics(path="Output/fig.n_EOs.taxa.png")
+figure.num<-figure.num+1
+```
+
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Total number of EOs for imperiled, endangered, and threatened species per subnation. EOs must be current (last observation date within the last 40 years).")}
+knitr::include_graphics(path="Output/map.Number_of_EOs.subnation.png")
+figure.num<-figure.num+1
+```
+
+```{r, echo=FALSE}
+#table.num <- table.num+1
+#read.csv(paste0("Output/Subnational_EO_Summary_", Sys.Date(), ".csv")) %>%
+#  kable(format = "pipe", caption = paste0("Table ", table.num, ". Subnational EO Summary"))
+```
+
+
+### 8a. All imperiled species should have element occurrences
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of elements with at least one current EO. EOs must have been observed within the last 40 years.")}
+knitr::include_graphics(path="Output/fig.Elements_with_EOs.taxa.png")
+figure.num<-figure.num+1
+```
+
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of imperiled, endangered, and threatened species with EOs by subnation. EOs must be current (last observation date within the last 40 years).")}
+knitr::include_graphics(path="Output/map.Proportion_Species_with_EOs.subnation.png")
+figure.num<-figure.num+1
+```
+
+### 8b. Species should have current element occurrences in every subnation in which the species occurs
+```{r, echo=FALSE, fig.cap= paste("Figure ", figure.num, ". Proportion of species elements with current Element occurrences available in all subnations in which the element occurs (regularly and confidently) and is native.")}
+knitr::include_graphics(path="Output/fig.EOs_for_all_Subnations.taxa.png")
+figure.num<-figure.num+1
+```
+
+### 8c. Element Occurrences should have valid last observation dates
+- Fig xx. Proportion of EOs (with confident species identification, not extirpated) for imperiled (G1-G2), endangered, and threatened  (according to US ESA or COSEWIC) species with valid observation dates. Valid observation dates contain a 4 digit year in the text date field. (exists in d_last_obs_year table)
+
+### 8d. Element Occurrences should have valid EO ranks
+- Fig xx. Proportion of EOs with valid ranks.
+
+### 8d. Elements Occurrences should have been visited within the last 10 years
+- Fig xx. Histogram of element occurrences (with confident identification, not extirpated) for at-risk (G1-G3) species with last observation dates within the last 5, 10, 20, and 30+ years.
+- Fig xx. Histogram of element occurrences (with confident identification, not extirpated) for imperiled (G1-G2), endangered, and threatened (US ESA and COSEWIC) species with last observation dates within the last 5, 10, 20, and 30+ years.
+
+### 8e. Element Occurrences should have representational accuracy information
+- Fig xx. Proportion of current EOs with accuracy information. Current EOs have confirmed identification, been observed in the last 40 years, and are not extirpated. EOs with accuracy information have a non-NULL value for representational accuracy, or precision (CA).
+
+## 9. Communities should have EOs
+- Proportion of all NVC groups with EOs
+- Proportion of G1-G2 groups with EOs
+- Proportion of subnations with community EOs 
+- Proportion of EOs that are up to date (EOs visited within last 40 years), by subnation 
+- Proportion of ecosystem EOs that are crosswalked to NVC group, by state
+- Proportion of EOs that have a condition rank

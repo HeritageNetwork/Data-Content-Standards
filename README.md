@@ -11,9 +11,11 @@ Script steps
 5. wrangle-data.R
 6. summarize-data.R
 7. select-primarysubsetglobalecosystems.R
-8. plot-standards.R
-9. plot-standards-multiyear.R
-10. data-content-standards-doc.Rmd
+8. Select-EO-attributes.R
+9. Summarize-Data-EO.R
+10. plot-standards.R
+11. plot-standards-multiyear.R
+12. data-content-standards-doc.Rmd
 
-Process update notes:
+Update notes:
 PrimarySubsetGlobal datasets 2022-2024 include exotics and GNAs. These elements were retroactively identified for exclusion using the select-native.R script
