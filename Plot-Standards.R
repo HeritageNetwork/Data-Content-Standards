@@ -3,9 +3,11 @@
 
 #data.qual<-read.csv(paste0("Output/data.qual.",Sys.Date(),".csv"))
 #dat.rank<-read.csv("Output/data.rank.csv")
-data.qual.taxa<- read.csv("Output/data.qual.taxa.2025-01-30.csv")
+data.qual.taxa<- read.csv("Output/data.qual.taxa.2025-04-01.csv")
+#data.qual.taxa<- read.csv("Output/data.qual.taxa.2025-01-30.csv")
 data.qual.grank <- read.csv("Output/data.qual.grank.2025-01-30.csv")
 dat<-read.csv("Output/PrimarySubsetGlobal.csv")
+subnation.data <- read.csv(paste0("Output/Subnational_EO_Summary_", Sys.Date(), ".csv"))
 
 ##read in data for ecosystems
 dat.ecosystems <- read.csv("Output/PrimarySubsetGlobalEcosystems.csv")
@@ -38,6 +40,38 @@ donut.plot.taxa <- function(data.plot, standard.plot) {
     theme_void() +
     xlim(.9, 2.5) +
     theme(text = element_text(size = 12), strip.text = element_text(size=12), legend.position="bottom")
+  print(fig.temp)
+}
+
+##create function to make bar charts for taxa
+bar.plot.taxa <- function(data.plot, standard.plot) {
+  data.plot <- subset(data.plot, standard==standard.plot)
+  if (standard.plot == "G_Rank_Review_Date") {data.plot <- data.plot %>% mutate(value = factor(value, levels = c(">10 years", "0-10 years")))}
+  data.plot <- data.plot %>%
+    dplyr::group_by(taxa) %>%
+    dplyr::arrange(desc(value)) %>%
+    dplyr::mutate(lab.ypos = cumsum(prop) - 0.5*prop) %>%
+    data.frame()
+  label <- subset(data.plot, value==T | value=="0-10 years", select=c(taxa, prop)) %>% dplyr::group_by(taxa) %>% data.frame()
+  colnames(label)<-c("taxa","label")
+  
+  data.plot <- dplyr::left_join(data.plot, label) %>% replace_na(list(label = 0)) #%>% mutate(G_RANK = str_replace(string = G_RANK, pattern = " ", replacement = "\n"))
+  
+  ## Get number of taxa groups for legend placement
+  n.groups<-length(unique(data.plot$taxa))
+  
+  mycols <- c("lightgrey", "seagreen4", "gold", "#0073C2FF")
+  fig.temp <- ggplot(data.plot, aes(x = taxa, y = prop, fill = value)) +
+    geom_bar(stat = "identity", color = "white") +
+    geom_text(aes(y = lab.ypos, label = format(n, big.mark=",")), color = "white")+
+    scale_fill_manual(values = mycols, name=gsub(standard.plot, pattern="_", replace=" ")) +
+    theme_classic() +
+    theme(text = element_text(size = 12), strip.text = element_text(size=12), legend.position="bottom") +
+    ylab("Proportion") +
+    xlab("") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    theme(strip.background = element_blank()) +
+    scale_y_continuous(expand=c(0,0), breaks = scales::breaks_pretty(n=10))
   print(fig.temp)
 }
 
@@ -106,11 +140,21 @@ bar.plot.grank <- function(data.plot, standard.plot) {
 ##for loop that creates a donut chart for each standard and saves it
 standards<-unique(data.qual.taxa$standard)
 for (j in 1:length(standards)) {
-  png(filename = paste0("Output/fig.", standards[j],".taxa.png"), width = 1200, height = 1200*.7, res=200)
-  donut.plot.taxa(data.plot = data.qual.taxa, standard.plot = standards[j])
+  
+  if (data.qual.taxa %>% 
+      filter(standard == standards[j]) %>%
+      select(taxa) %>%
+      unique() %>% 
+      nrow() > 2) {
+    png(filename = paste0("Output/fig.", standards[j],".taxa.png"), width = 1200*1.25, height = 1200*.7, res=200)
+    bar.plot.taxa(data.plot = data.qual.taxa, standard.plot = standards[j])
+  } else {
+    png(filename = paste0("Output/fig.", standards[j],".taxa.png"), width = 1200, height = 1200*.7, res=200)
+    donut.plot.taxa(data.plot = data.qual.taxa, standard.plot = standards[j])
+  }
   dev.off()
   
-  if(standards[j] %in% c("G_Rank", "EOs_for_all_Subnations", "Elements_with_EOs")) {next} ##move to next standard if there are no data for various G ranks
+  if(data.qual.grank %>% filter(standard == standards[j]) %>% nrow() == 0) {next} ##move to next standard if there are no data for various G ranks
   
   png(filename = paste0("Output/fig.", standards[j],".GRank.png"), width = 1200, height = 1200/1.2, res=150)
   donut.plot.grank(data.plot = data.qual.grank, standard.plot = standards[j])
@@ -272,5 +316,54 @@ if ("taxa2" %in% colnames(data.qual.taxa)) {
   
   png(filename = "Output/fig.rankreviewdate.informal.taxa.png", width = 12, height = 5, units = "in", res=200)
   print(fig.temp)
+  dev.off()
+}
+
+library(sf)
+library(rnaturalearth)
+library(scales)
+world <- rnaturalearth::ne_states(country = c("United States of America", "Canada"), returnclass = "sf")
+world <- st_transform(world, "+proj=lcc +lat_1=33 +lat_2=45 +lon_0=-96")
+
+# Merge map with EO data
+map_data <- world %>%
+  mutate(SUBNATION_CODE = gsub("^(US-|CA-)", "", iso_3166_2)) %>%
+  left_join(subnation.data, by = "SUBNATION_CODE") %>%
+  mutate(Number_of_EOs = ifelse(is.na(Number_of_EOs), 0, Number_of_EOs))
+
+# Get bounding box for cropping
+bbox <- st_bbox(map_data %>% filter(!is.na(Number_of_EOs) & Number_of_EOs > 0))
+
+# Plot map
+#colors.plot <- c("white", "yellow", "orange", "red", "darkred")
+colors.plot <- c("white", "#c7e9c0", "#7fbc41", "#2c7d32", "#00441b")
+subnation.map.function <- function(data.plot, standard.plot) {
+  if(max(map_data[[standard.plot]], na.rm = TRUE) > 1) {
+    scale.values <- scales::rescale(c(0, 1, max(map_data[[standard.plot]], na.rm = TRUE)/3, max(map_data[[standard.plot]], na.rm = TRUE)/3*2, max(map_data[[standard.plot]], na.rm = TRUE)))
+  } else{
+    scale.values <- c(0, 0.25, 0.5, 0.75, 1)
+  }
+  
+  fig.temp <- ggplot(map_data) +
+    geom_sf(aes(fill = !!sym(standard.plot)), color = "black") +
+    scale_fill_gradientn(colors = colors.plot,
+                         values = scale.values,
+                         #limits = c(0, max(scale.values)),
+                         na.value = "white",
+                         name = gsub("_", " ", standard.plot), labels = comma) +
+    coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]), ylim = c(bbox["ymin"], bbox["ymax"]), expand = FALSE) +
+    theme_minimal() +
+    theme(legend.position = "bottom",
+          legend.key.width = unit(1, "cm"), # Make the legend key width smaller
+          legend.title = element_text(size = 12),  # Increase title font size
+          legend.text = element_text(size = 10))   # Increase text font size
+  print(fig.temp)
+}
+
+subnation.map.function(data.plot = data.plot, standard.plot = "Number_of_EOs")
+map.standards <- subnation.data %>% select(-SUBNATION_CODE) %>% names()
+for (j in 1:length(map.standards)) {
+  png(filename = paste0("Output/map.", map.standards[j] ,".subnation.png"), width = 1200, height = 1200*.7, res=200)
+  subnation.map.function(data.plot = data.plot, standard.plot = map.standards[j])
   dev.off()
 }

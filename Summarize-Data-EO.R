@@ -4,6 +4,7 @@ library(tidyverse)
 
 #dat <- readxl::read_xlsx("C:/Users/MaxTarjanPhD/Downloads/Biotics_EO_Summary.xlsx", sheet = "EO_Summary_v2_202401")
 dat <- read.csv(paste0("Output/ImperiledSubsetGlobal-EOs-", Sys.Date(), ".csv"))
+#dat <- read.csv("Output/ImperiledSubsetGlobal-EOs-2025-04-01.csv")
 
 ## wrangle data to create summaries of data completeness
 
@@ -22,17 +23,23 @@ dat <- dat %>%
       ROUNDED_G_RANK %in% c("GNR", "TNR") ~ "GNR/TNR",
       ROUNDED_G_RANK %in% c("GU", "TU") ~ "GU/TU"
     ),
+    NUM_EOS = ifelse(is.na(NUM_EOS), 0, NUM_EOS),
+    NUM_EOS_STD_COUNT = ifelse(is.na(NUM_EOS_STD_COUNT), 0, NUM_EOS_STD_COUNT),
+    NUM_EOS_STD_COUNT_LOBS = ifelse(is.na(NUM_EOS_STD_COUNT_LOBS), 0, NUM_EOS_STD_COUNT_LOBS),
+    NUM_EOS_STD_COUNT_RANKED = ifelse(is.na(NUM_EOS_STD_COUNT_RANKED), 0, NUM_EOS_STD_COUNT_RANKED),
+    NUM_EOS_STD_COUNT_ACCURACY = ifelse(is.na(NUM_EOS_STD_COUNT_ACCURACY), 0, NUM_EOS_STD_COUNT_ACCURACY),
     NUM_EOS_STD_COUNT_40YR = ifelse(is.na(NUM_EOS_STD_COUNT_40YR), 0, NUM_EOS_STD_COUNT_40YR),
+    NUM_EOS_STD_COUNT_10YR = ifelse(is.na(NUM_EOS_STD_COUNT_10YR), 0, NUM_EOS_STD_COUNT_10YR),
     TAX1 = dplyr::case_when(
       NAME_CATEGORY_DESC %in% c("Vertebrate Animal", "Invertebrate Animal") ~ "Animals",
       NAME_CATEGORY_DESC %in% c("Nonvascular Plant", "Vascular Plant") ~ "Plants"
     )
-  )
-
+  ) %>%
+  filter(G_RANK %in% c("G1/T1", "G2/T2", "GH/TH") | COSEWIC_DESC %in% c("Endangered", "Threatened") | grepl(x = USESA, pattern = "(^|,)(E|T)"))
 
 ### Total number of EOs per taxonomic group. EOs must be current (last observation date within the last 40 years, not extirpated, and with confirmed species identity).
 data.plot <- dat %>%
-  mutate(taxa = NSX_TAX) %>%
+  mutate(taxa = INFO_TAX_CLASS) %>%
   group_by(taxa) %>%
   summarise(n_EOs = sum(NUM_EOS_STD_COUNT_40YR, na.rm = T))
 
@@ -55,6 +62,8 @@ dev.off()
 data.plot <- dat %>% 
   group_by(SUBNATION_CODE) %>%
   summarise(Number_of_EOs = sum(NUM_EOS_STD_COUNT_40YR, na.rm = T))
+
+## Number and proportion of species with EOs
 data.plot <- dat %>%
   group_by(SUBNATION_CODE, ELEMENT_GLOBAL_ID) %>%
   summarise(has_eos = ifelse(sum(NUM_EOS_STD_COUNT_40YR)>0, 1, 0)) %>%
@@ -63,59 +72,41 @@ data.plot <- dat %>%
             N_Species = n(), 
             Proportion_Species_with_EOs = sum(has_eos)/n()) %>%
   left_join(data.plot)
-  
+
+## Proportion of EOs visited in the last 10 years
+data.plot <- dat %>%
+  group_by(SUBNATION_CODE) %>%
+  summarise(Proportion_EOs_10_Years_Current = sum(NUM_EOS_STD_COUNT_10YR, na.rm = T)/sum(NUM_EOS_STD_COUNT, na.rm = T)) %>% 
+  mutate(Proportion_EOs_10_Years_Current = ifelse(is.na(Proportion_EOs_10_Years_Current), 0, Proportion_EOs_10_Years_Current)) %>%
+  left_join(data.plot)
+
+## Proportion of EOs with valid last obs dates
+data.plot <- dat %>%
+  group_by(SUBNATION_CODE) %>%
+  summarise(Proportion_EOs_with_Dates = sum(NUM_EOS_STD_COUNT_LOBS, na.rm = T)/sum(NUM_EOS_STD_COUNT, na.rm = T)) %>% 
+  mutate(Proportion_EOs_with_Dates = ifelse(is.na(Proportion_EOs_with_Dates), 0, Proportion_EOs_with_Dates)) %>%
+  left_join(data.plot)
+
+## Proportion of EOs Ranked
+data.plot <- dat %>%
+  group_by(SUBNATION_CODE) %>%
+  summarise(Proportion_EOs_Ranked = sum(NUM_EOS_STD_COUNT_RANKED, na.rm = T)/sum(NUM_EOS_STD_COUNT, na.rm = T)) %>% 
+  mutate(Proportion_EOs_Ranked = ifelse(is.na(Proportion_EOs_Ranked), 0, Proportion_EOs_Ranked)) %>%
+  left_join(data.plot)
+
+## Proportion of EOs with representational accuracy
+data.plot <- dat %>%
+  group_by(SUBNATION_CODE) %>%
+  summarise(Proportion_EOs_with_Accuracy = sum(NUM_EOS_STD_COUNT_ACCURACY, na.rm = T)/sum(NUM_EOS_STD_COUNT, na.rm = T)) %>%
+  mutate(Proportion_EOs_with_Accuracy = ifelse(is.na(Proportion_EOs_with_Accuracy), 0, Proportion_EOs_with_Accuracy)) %>%
+  left_join(data.plot)
+
 write.csv(data.plot, paste0("Output/Subnational_EO_Summary_", Sys.Date(), ".csv"), row.names = F)
-
-library(sf)
-library(rnaturalearth)
-library(scales)
-world <- rnaturalearth::ne_states(country = c("United States of America", "Canada"), returnclass = "sf")
-world <- st_transform(world, "+proj=lcc +lat_1=33 +lat_2=45 +lon_0=-96")
-
-# Merge map with EO data
-map_data <- world %>%
-  mutate(SUBNATION_CODE = gsub("^(US-|CA-)", "", iso_3166_2)) %>%
-  left_join(data.plot, by = "SUBNATION_CODE") %>%
-  mutate(Number_of_EOs = ifelse(is.na(Number_of_EOs), 0, Number_of_EOs))
-
-# Get bounding box for cropping
-bbox <- st_bbox(map_data %>% filter(!is.na(Number_of_EOs) & Number_of_EOs > 0))
-
-# Plot map
-#colors.plot <- c("white", "yellow", "orange", "red", "darkred")
-colors.plot <- c("white", "#c7e9c0", "#7fbc41", "#2c7d32", "#00441b")
-subnation.map.function <- function(data.plot, standard.plot) {
-  fig.temp <- ggplot(map_data) +
-    geom_sf(aes(fill = !!sym(standard.plot)), color = "black") +
-    scale_fill_gradientn(colors = colors.plot,
-                         values = scales::rescale(c(0, 1, max(map_data[[standard.plot]], na.rm = TRUE)/3, max(map_data[[standard.plot]], na.rm = TRUE)/3*2, max(map_data[[standard.plot]], na.rm = TRUE))),
-                         na.value = "white",
-                         name = gsub("_", " ", standard.plot), labels = comma) +
-    coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]), ylim = c(bbox["ymin"], bbox["ymax"]), expand = FALSE) +
-    theme_minimal() +
-    #labs(title = "Number of Element Occurrences (EOs) by Subnation",
-    #     subtitle = "US States and Canadian Provinces",
-    #     fill = "EOs Count") +
-    theme(legend.position = "bottom",
-          legend.key.width = unit(1, "cm"), # Make the legend key width smaller
-          legend.title = element_text(size = 12),  # Increase title font size
-          legend.text = element_text(size = 10))   # Increase text font size
-  print(fig.temp)
-}
-
-subnation.map.function(data.plot = data.plot, standard.plot = "Number_of_EOs")
-map.standards <- data.plot %>% select(-SUBNATION_CODE) %>% names()
-#map.standards <- c("Proportion_Species_with_EOs", "Number_of_EOs")
-for (j in 1:length(map.standards)) {
-  png(filename = paste0("Output/map.", map.standards[j] ,".subnation.png"), width = 1200, height = 1200*.7, res=200)
-  subnation.map.function(data.plot = data.plot, standard.plot = map.standards[j])
-  dev.off()
-}
 
 # Get data for plot functions
 ## Proportion of elements with EOs for all subnations in which they occur
 data.qual.eos <- dat %>%
-  mutate(taxa = TAX1) %>%
+  mutate(taxa = INFO_TAX_CLASS) %>%
   filter(!is.na(taxa)) %>%
   group_by(ELEMENT_GLOBAL_ID, SUBNATION_CODE, taxa) %>%
   summarize(
@@ -147,7 +138,7 @@ data.qual.eos <- dat %>%
 
 ## Proportion of elements with at least one current EO.
 data.qual.eos <- dat %>%
-  mutate(taxa = TAX1) %>%
+  mutate(taxa = INFO_TAX_CLASS) %>%
   filter(!is.na(taxa)) %>%
   group_by(ELEMENT_GLOBAL_ID, taxa) %>%
   summarize(
@@ -168,6 +159,85 @@ data.qual.eos <- dat %>%
   mutate(standard = "Elements_with_EOs") %>%
   select(taxa, standard, value, n, prop) %>%
   rbind(data.qual.eos)
+
+## Proportion of EOs with valid observation dates
+## use EOs_lobs_valid = count of EOs with valid observation dates
+data.qual.eos <- dat %>%
+  mutate(taxa = INFO_TAX_CLASS,
+         standard = "EOs_with_Dates") %>%
+  group_by(taxa, standard) %>%
+  filter(!is.na(taxa)) %>%
+  summarise(`TRUE` = sum(NUM_EOS_STD_COUNT_LOBS, na.rm=T),
+            `FALSE` = sum(NUM_EOS_STD_COUNT, na.rm=T)-sum(NUM_EOS_STD_COUNT_LOBS, na.rm=T)) %>%
+  gather(key = "value", value = "n", 3:4) %>%
+  group_by(taxa, standard) %>%
+  mutate(prop = n/sum(n)) %>%
+  ungroup() %>%
+  arrange(taxa) %>%
+  rbind(data.qual.eos)
+
+## Proportion of EOs with valid ranks
+data.qual.eos <- dat %>%
+  mutate(taxa = INFO_TAX_CLASS,
+         standard = "EOs_with_Rank") %>%
+  group_by(taxa, standard) %>%
+  filter(!is.na(taxa)) %>%
+  summarise(`TRUE` = sum(NUM_EOS_STD_COUNT_RANKED, na.rm=T),
+            `FALSE` = sum(NUM_EOS_STD_COUNT, na.rm=T)-sum(NUM_EOS_STD_COUNT_RANKED, na.rm=T)) %>%
+  gather(key = "value", value = "n", 3:4) %>%
+  group_by(taxa, standard) %>%
+  mutate(prop = n/sum(n)) %>%
+  ungroup() %>%
+  arrange(taxa) %>%
+  rbind(data.qual.eos)
+
+## Proportion of EOs with representational accuracy
+data.qual.eos <- dat %>%
+  mutate(taxa = INFO_TAX_CLASS,
+         standard = "EOs_with_Accuracy") %>%
+  group_by(taxa, standard) %>%
+  filter(!is.na(taxa)) %>%
+  summarise(`TRUE` = sum(NUM_EOS_STD_COUNT_ACCURACY, na.rm=T),
+            `FALSE` = sum(NUM_EOS_STD_COUNT, na.rm=T)-sum(NUM_EOS_STD_COUNT_ACCURACY, na.rm=T)) %>%
+  gather(key = "value", value = "n", 3:4) %>%
+  group_by(taxa, standard) %>%
+  mutate(prop = n/sum(n)) %>%
+  ungroup() %>%
+  arrange(taxa) %>%
+  rbind(data.qual.eos)
+
+## Proportion of EOs visited in last 10 years
+data.qual.eos <- dat %>%
+  mutate(taxa = INFO_TAX_CLASS,
+         standard = "EOs_10_Years_Current") %>%
+  group_by(taxa, standard) %>%
+  filter(!is.na(taxa)) %>%
+  summarise(`TRUE` = sum(NUM_EOS_STD_COUNT_10YR, na.rm=T),
+            `FALSE` = sum(NUM_EOS_STD_COUNT, na.rm=T)-sum(NUM_EOS_STD_COUNT_10YR, na.rm=T)) %>%
+  gather(key = "value", value = "n", 3:4) %>%
+  group_by(taxa, standard) %>%
+  mutate(prop = n/sum(n)) %>%
+  ungroup() %>%
+  arrange(taxa) %>%
+  rbind(data.qual.eos)
+  
+## Histogram of EO last observation date
+data.hist <- dat %>%
+  summarise(across(c(NUM_EOS_STD_COUNT_5YR, NUM_EOS_STD_COUNT_10YR, 
+                     NUM_EOS_STD_COUNT_20YR, NUM_EOS_STD_COUNT_30YR, 
+                     NUM_EOS_STD_COUNT_40YR), 
+                   \(x) sum(x, na.rm = TRUE))) %>%
+  pivot_longer(cols = everything(), 
+               names_to = "Years", 
+               values_to = "Sum_Value") %>%
+  mutate(Years = str_extract(Years, "\\d+") %>% as.numeric()) # Extracts numeric values
+
+png(filename = "Output/fig.EOs.Lobs.hist.png", width = 6.5, height = 5, units = "in", res=200)
+ggplot(data.hist, aes(x = factor(Years), y = Sum_Value)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(x = "Years", y = "Number of EOs visited within the Last x Years") +
+  theme_minimal()
+dev.off()
 
 #donut.plot.taxa(data.plot = data.qual.eos, standard.plot = "Elements_with_EOs")
 #donut.plot.taxa(data.plot = data.qual.eos, standard.plot = "EOs_for_all_Subnations")

@@ -19,7 +19,7 @@ qry1 <- "
 SELECT 
     element_global.element_global_id, 
     nc.name_category_desc, 
-    nsx_informal_tax(element_global.element_global_id) nsx_tax, 
+    informal_tax_class(element_global.element_global_id) info_tax_class, 
     informal_tax(element_global.element_global_id) info_tax, 
     element_global.rounded_g_rank, 
     egt_usesa(element_global.element_global_id) USESA, 
@@ -142,8 +142,45 @@ qry2 <- ("select case when dnc.name_category_desc like 'Other (%' then dnc.name_
              end) as num_eos_wo_shp
      , count(eo.xh) as num_xh_EOs
      , count(eo.id_unconfirmed) as num_id_unconfirmed_EOs
+     , count(lobs_over_5_yr) as EOs_lobs_gt_5yr
+     , count(lobs_over_10_yr) as EOs_lobs_gt_10yr
+     , count(lobs_over_20_yr) as EOs_lobs_gt_20yr
      , count(lobs_over_30_yr) as EOs_lobs_gt_30yr
      , count(lobs_over_40_yr) as EOs_lobs_gt_40yr
+     , count(has_eo_rank) as EOs_ranked
+     , count(has_eo_rep_accuracy) as EOs_rep_accuracy
+     , count(lobs_valid) as EOs_lobs_valid
+     , count(case
+               when eo.principal_eo_shape_id is not null then null
+               when eo.has_shp is null then null
+               when eo.id_unconfirmed is not null then null
+               when eo.xh is not null then null
+               else 1
+             end) as num_EOs_std_count
+     , count(case
+               when eo.principal_eo_shape_id is not null then null
+               when eo.has_shp is null then null
+               when eo.id_unconfirmed is not null then null
+               when eo.xh is not null then null
+               when eo.lobs_over_5_yr = 'Y' then null
+               else 1
+             end) as num_EOs_std_count_5yr
+     , count(case
+               when eo.principal_eo_shape_id is not null then null
+               when eo.has_shp is null then null
+               when eo.id_unconfirmed is not null then null
+               when eo.xh is not null then null
+               when eo.lobs_over_10_yr = 'Y' then null
+               else 1
+             end) as num_EOs_std_count_10yr
+     , count(case
+               when eo.principal_eo_shape_id is not null then null
+               when eo.has_shp is null then null
+               when eo.id_unconfirmed is not null then null
+               when eo.xh is not null then null
+               when eo.lobs_over_20_yr = 'Y' then null
+               else 1
+             end) as num_EOs_std_count_20yr        
      , count(case
                when eo.principal_eo_shape_id is not null then null
                when eo.has_shp is null then null
@@ -160,6 +197,30 @@ qry2 <- ("select case when dnc.name_category_desc like 'Other (%' then dnc.name_
                when eo.lobs_over_40_yr = 'Y' then null
                else 1
              end) as num_EOs_std_count_40yr
+     , count(case
+               when eo.principal_eo_shape_id is not null then null
+               when eo.has_shp is null then null
+               when eo.id_unconfirmed is not null then null
+               when eo.xh is not null then null
+               when eo.has_eo_rank is null then null
+               else 1
+             end) as num_EOs_std_count_ranked
+      , count(case
+               when eo.principal_eo_shape_id is not null then null
+               when eo.has_shp is null then null
+               when eo.id_unconfirmed is not null then null
+               when eo.xh is not null then null
+               when eo.has_eo_rep_accuracy is null then null
+               else 1
+             end) as num_EOs_std_count_accuracy
+      , count(case
+               when eo.principal_eo_shape_id is not null then null
+               when eo.has_shp is null then null
+               when eo.id_unconfirmed is not null then null
+               when eo.xh is not null then null
+               when eo.lobs_valid is null then null
+               else 1
+             end) as num_EOs_std_count_lobs
      , (select count(1) from source_feature sf 
         where sf.element_subnational_id = est.element_subnational_id 
           and est.subnation_id in (32,51) 
@@ -170,6 +231,33 @@ qry2 <- ("select case when dnc.name_category_desc like 'Other (%' then dnc.name_
           and getnametypecd(est.sname_id) = 'A'
           and sf.independent_source_feature_ind = 'Y') num_MNanimal_ind_SFs          
      , count(eo.data_sens) as num_data_sens_EOs
+     , count(case
+               when eo.principal_eo_shape_id is not null then null
+               when eo.has_shp is null then null
+               when eo.id_unconfirmed is not null then null
+               when eo.xh is not null then null
+               when eo.lobs_over_5_yr = 'Y' then null
+               when eo.data_sens is not null then 1
+               else null               
+             end) as num_data_sens_EOs_curr_5_yr
+     , count(case
+               when eo.principal_eo_shape_id is not null then null
+               when eo.has_shp is null then null
+               when eo.id_unconfirmed is not null then null
+               when eo.xh is not null then null
+               when eo.lobs_over_10_yr = 'Y' then null
+               when eo.data_sens is not null then 1
+               else null               
+             end) as num_data_sens_EOs_curr_10_yr
+     , count(case
+               when eo.principal_eo_shape_id is not null then null
+               when eo.has_shp is null then null
+               when eo.id_unconfirmed is not null then null
+               when eo.xh is not null then null
+               when eo.lobs_over_20_yr = 'Y' then null
+               when eo.data_sens is not null then 1
+               else null               
+             end) as num_data_sens_EOs_curr_20_yr
      , count(case
                when eo.principal_eo_shape_id is not null then null
                when eo.has_shp is null then null
@@ -274,6 +362,43 @@ FROM
             when d_basic_eo_rank_id is null then 'Y' 
             else null
           end not_xh
+        , case 
+            when d_basic_eo_rank_id is null then null
+            when d_basic_eo_rank_id = 22 then null
+            else 'Y'
+          end has_eo_rank
+        , case 
+            when (d_est_rep_accuracy_id is not null and d_est_rep_accuracy_id <> 5) or precision_bcd is not null then 'Y'
+            else null
+          end has_eo_rep_accuracy  
+        , case
+            when (select dloy.ws_display_value from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date) is null then null
+            else 'Y'
+          end lobs_valid
+        , case
+            when nvl((select dloy.last_obs_single_year 
+                      from d_last_obs_year dloy 
+                      where dloy.last_obs_date = eo.last_obs_date),99999) < (EXTRACT(YEAR FROM sysdate)-5) then 'Y'
+            when nvl((select dloy.last_obs_max_year from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date),99999) < (EXTRACT(YEAR FROM sysdate)-5) then 'Y'
+            when (select dloy.ws_display_value from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date) is null then null
+            else null
+          end lobs_over_5_yr
+        , case
+            when nvl((select dloy.last_obs_single_year 
+                      from d_last_obs_year dloy 
+                      where dloy.last_obs_date = eo.last_obs_date),99999) < (EXTRACT(YEAR FROM sysdate)-10) then 'Y'
+            when nvl((select dloy.last_obs_max_year from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date),99999) < (EXTRACT(YEAR FROM sysdate)-10) then 'Y'
+            when (select dloy.ws_display_value from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date) is null then null
+            else null
+          end lobs_over_10_yr
+        , case
+            when nvl((select dloy.last_obs_single_year 
+                      from d_last_obs_year dloy 
+                      where dloy.last_obs_date = eo.last_obs_date),99999) < (EXTRACT(YEAR FROM sysdate)-20) then 'Y'
+            when nvl((select dloy.last_obs_max_year from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date),99999) < (EXTRACT(YEAR FROM sysdate)-20) then 'Y'
+            when (select dloy.ws_display_value from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date) is null then null
+            else null
+          end lobs_over_20_yr
         , case
             when nvl((select dloy.last_obs_single_year 
                       from d_last_obs_year dloy 
@@ -289,6 +414,30 @@ FROM
             when nvl((select dloy.last_obs_max_year from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date),99999) < (EXTRACT(YEAR FROM sysdate)-40) then 'Y'
             else null
           end lobs_over_40_yr
+        , case
+            when d_basic_eo_rank_id in (16, 17) then null 
+            when nvl((select dloy.last_obs_single_year 
+                      from d_last_obs_year dloy 
+                      where dloy.last_obs_date = eo.last_obs_date),99999) >= (EXTRACT(YEAR FROM sysdate)-5) then 'Y'
+            when nvl((select dloy.last_obs_max_year from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date),99999) >= (EXTRACT(YEAR FROM sysdate)-5) then 'Y'
+            else null
+          end curr_5_yr
+        , case
+            when d_basic_eo_rank_id in (16, 17) then null 
+            when nvl((select dloy.last_obs_single_year 
+                      from d_last_obs_year dloy 
+                      where dloy.last_obs_date = eo.last_obs_date),99999) >= (EXTRACT(YEAR FROM sysdate)-10) then 'Y'
+            when nvl((select dloy.last_obs_max_year from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date),99999) >= (EXTRACT(YEAR FROM sysdate)-10) then 'Y'
+            else null
+          end curr_10_yr
+        , case
+            when d_basic_eo_rank_id in (16, 17) then null 
+            when nvl((select dloy.last_obs_single_year 
+                      from d_last_obs_year dloy 
+                      where dloy.last_obs_date = eo.last_obs_date),99999) >= (EXTRACT(YEAR FROM sysdate)-20) then 'Y'
+            when nvl((select dloy.last_obs_max_year from d_last_obs_year dloy where dloy.last_obs_date = eo.last_obs_date),99999) >= (EXTRACT(YEAR FROM sysdate)-20) then 'Y'
+            else null
+          end curr_20_yr
         , case
             when d_basic_eo_rank_id in (16, 17) then null 
             when nvl((select dloy.last_obs_single_year 
@@ -353,16 +502,15 @@ group by gname.scientific_name, gname.d_name_category_id, dnc.name_type_cd, dnc.
       , est.esa_te, est.esa_cp, est.esa_dl, est.esa_oth, est.esa_any 
 order by gname.scientific_name, egt.element_global_id, sbn.NATION_ID desc, sbn.subnation_code")
 
-dat.eos <- sqlQuery(con, qry2) ##import the queried table
+#dat.eos <- sqlQuery(con, qry2) ##import the queried table
 
-##temporary way to get data without running query
+## connection times out when running query through R so ran it on biotics web interface. read in results
 #dat.eos <- readxl::read_xlsx("C:/Users/MaxTarjanPhD/Downloads/Biotics_EO_Summary.xlsx", sheet = "EO_Summary_v2_202401")
-
-#dat.eos %>% filter(ROUNDED_G_RANK %in% c("G1", "T1", "G2", "T2", "GH", "TH") | (!is.na(USESA) & USESA != "DL")) %>% dim()
+dat.eos <- read.csv("Data/max_1743520276858.csv")
 
 ## combine subnational elements with EO data
 dat <- dat.spp %>%
   left_join(dat.eos %>%
-              select(ELEMENT_GLOBAL_ID, NAME_CAT, ELEMENT_SUBNATIONAL_ID, SUBNATION_CODE, NATION, NUM_EOS, NUM_SUB_EOS, NUM_EOS_WO_SHP, NUM_XH_EOS, EOS_LOBS_GT_30YR, EOS_LOBS_GT_40YR, NUM_EOS_STD_COUNT_30YR, NUM_EOS_STD_COUNT_40YR, NUM_TXMS_IND_SFS, NUM_MNANIMAL_IND_SFS, NUM_EOS_ALL_ELEM_IN_STATE, NUM_IND_SFS_ALL_ELEM_IN_STATE))
+              select(ELEMENT_GLOBAL_ID, NAME_CAT, ELEMENT_SUBNATIONAL_ID, SUBNATION_CODE, NATION, NUM_EOS, NUM_EOS_STD_COUNT, NUM_SUB_EOS, NUM_EOS_WO_SHP, NUM_XH_EOS, EOS_RANKED, NUM_EOS_STD_COUNT_RANKED, EOS_LOBS_VALID, NUM_EOS_STD_COUNT_LOBS, EOS_REP_ACCURACY, NUM_EOS_STD_COUNT_ACCURACY, EOS_LOBS_GT_5YR, EOS_LOBS_GT_10YR, EOS_LOBS_GT_20YR, EOS_LOBS_GT_30YR, EOS_LOBS_GT_40YR, NUM_EOS_STD_COUNT_5YR, NUM_EOS_STD_COUNT_10YR, NUM_EOS_STD_COUNT_20YR, NUM_EOS_STD_COUNT_30YR, NUM_EOS_STD_COUNT_40YR, NUM_EOS_ALL_ELEM_IN_STATE, NUM_IND_SFS_ALL_ELEM_IN_STATE))
 
 write.csv(dat, paste0("Output/ImperiledSubsetGlobal-EOs-", Sys.Date(), ".csv"), row.names = F)
